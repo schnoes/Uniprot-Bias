@@ -6,6 +6,10 @@ papersExp_dict = cPickle.load(papersExp_handle)
 papers_protsExp_handle = open('goa-pickles/goa_exp_papers_prots.pik', 'rb')
 papers_protsExp_dict = cPickle.load(papers_protsExp_handle)
 
+#top go codes
+top = 50
+ec_go_code_count = sp_tools.count_top_go_terms_per_ecode_all_entries(papersExp_dict, "sortedECGO.txt", top)
+
 # going for the top fifty papers
 top = 50
 papers_annots2_dict = sp_tools.top_papers_dict(papersExp_dict, papers_protsExp_dict, top=top)

@@ -313,6 +313,21 @@ def sort_papers_prots(papers_prots):
                                        reverse=True)
     return sortedProtsPerPaper_tuple
 
+###########################################################
+# sort_go_code
+###########################################################
+def sort_go_code(go_code_count):
+    """Sort the dictionary go_code_count according to the number of times a certain go code is used  
+    Return the sorted tuple (sorted highest to lowest) as a 
+    named tuple."""
+    GOCode_collect = collections.namedtuple('GOCode_collect', 'numAnnots go_code')
+    #creates a tuple of (numAnnots, go_code) sorted on numAnnots highest to lowest
+    GOCode_collect_tuple = sorted([GOCode_collect(value, key) for (key, value) in go_code_count.items()],
+                                       reverse=True)
+    return GOCode_collect_tuple
+
+
+
 def top_ontology(papers,outpath=None,top=20):
     """Determines the top GO terms annotated in the analysis set and 1) puts it in 
     the output dict top_go and 2) writes it out to a tab delim file 'outpath'
@@ -608,6 +623,9 @@ def go_tax_in_papers_goa(goa_path):
         # go_id entry (key = 'go_id'), GO evidence code (key = 'go_ec'), NCBI taxon ID (key='taxon_id']
         #print taxon_id
         #taxon_id =  taxon_id[6:] # get rid of leading 'taxon:'
+        #Note, in rare cases, taxon_id can contain more than one taxon ID. Currenly not represented in the 
+        #top 50 papers, but it should be noted that the code currently doesn't have any way to deal with that.
+        #It will just print it out.
         d1 = dict(sp_id=key_id, 
                   go_id=go_id, 
                   go_ec=evidence, 
@@ -661,6 +679,46 @@ def go_tax_in_papers_goa(goa_path):
         printDict(papers_prots, 'papers_prots.txt')
     return papers, papers_prots
 """
+ 
+        
+###########################################################
+# count_top_go_terms_per_ecode_all_entries
+###########################################################
+def count_top_go_terms_per_ecode_all_entries(papers, outpath=None, top=20):
+    """Count up how many time a GO term is used for each experimental evidence code and print out the top 'top'
+    GO codes per evidence codes.
+    """
+    ec_go_code_count = {}
+    for p in papers:
+        for rec in papers[p]:
+            go_id = rec['go_id']
+            go_ec = rec['go_ec']
+            if go_ec not in ec_go_code_count:
+                ec_go_code_count[go_ec] = {go_id: 1}
+            else:
+                ec_go_code_count[go_ec][go_id] = \
+                ec_go_code_count[go_ec].get(go_id,0)+1
+    
+    sorted_collection_dict = {}
+    for ec in EEC:
+        sorted_collection_dict[ec] = sort_go_code(ec_go_code_count[ec])
+    #top_go = [(i[1],i[0]) for i in go_count.items()]
+    #top_go.sort()
+    if outpath:
+        go_con = mysqlConnect()
+        go_cur = go_con.cursor()
+        f = open(outpath,"w")
+        for ec in sorted(EEC):
+            f.write('Evidence Code: ' + ec +'\n')
+            for sortedGO in sorted_collection_dict[ec][0:top]: 
+                name = gu.go_acc_to_name(sortedGO.go_code,go_cur)
+                f.write("%d\t%s\t%s\n" % (sortedGO.numAnnots, sortedGO.go_code, name))
+        
+        
+        f.close()
+        go_con.close()
+    return ec_go_code_count
+    
         
 ###########################################################
 # count_taxonIDs

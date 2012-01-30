@@ -1,0 +1,281 @@
+Evidence Code: EXP
+3	GO:0008735	carnitine dehydratase activity
+2	GO:0042413	carnitine catabolic process
+2	GO:0009437	carnitine metabolic process
+2	GO:0006772	thiamine metabolic process
+2	GO:0005886	plasma membrane
+1	GO:0052083	negative regulation by symbiont of host cell-mediated immune response
+1	GO:0051302	regulation of cell division
+1	GO:0045893	positive regulation of transcription, DNA-dependent
+1	GO:0030288	outer membrane-bounded periplasmic space
+1	GO:0030170	pyridoxal phosphate binding
+1	GO:0019143	3-deoxy-manno-octulosonate-8-phosphatase activity
+1	GO:0019104	DNA N-glycosylase activity
+1	GO:0015847	putrescine transport
+1	GO:0015489	putrescine transmembrane transporter activity
+1	GO:0010181	FMN binding
+1	GO:0009443	pyridoxal 5'-phosphate salvage
+1	GO:0008809	carnitine racemase activity
+1	GO:0008615	pyridoxine biosynthetic process
+1	GO:0006979	response to oxidative stress
+1	GO:0006457	protein folding
+1	GO:0005887	integral to plasma membrane
+1	GO:0005737	cytoplasm
+1	GO:0005524	ATP binding
+1	GO:0004519	endonuclease activity
+1	GO:0004055	argininosuccinate synthase activity
+Evidence Code: IDA
+17982	GO:0005634	nucleus
+12167	GO:0005737	cytoplasm
+8744	GO:0005739	mitochondrion
+7849	GO:0005886	plasma membrane
+5910	GO:0005829	cytosol
+3882	GO:0005730	nucleolus
+2722	GO:0003677	DNA binding
+2249	GO:0009507	chloroplast
+2155	GO:0009897	external side of plasma membrane
+2117	GO:0005783	endoplasmic reticulum
+2075	GO:0045944	positive regulation of transcription from RNA polymerase II promoter
+2055	GO:0005615	extracellular space
+1723	GO:0005794	Golgi apparatus
+1462	GO:0003700	sequence-specific DNA binding transcription factor activity
+1440	GO:0045893	positive regulation of transcription, DNA-dependent
+1391	GO:0043565	sequence-specific DNA binding
+1361	GO:0005576	extracellular region
+1335	GO:0016020	membrane
+1221	GO:0005624	membrane fraction
+1183	GO:0006468	protein phosphorylation
+1071	GO:0003682	chromatin binding
+995	GO:0006355	regulation of transcription, DNA-dependent
+986	GO:0009570	chloroplast stroma
+956	GO:0045892	negative regulation of transcription, DNA-dependent
+943	GO:0000122	negative regulation of transcription from RNA polymerase II promoter
+842	GO:0005813	centrosome
+830	GO:0009986	cell surface
+799	GO:0009506	plasmodesma
+796	GO:0005625	soluble fraction
+771	GO:0043025	neuronal cell body
+767	GO:0004674	protein serine/threonine kinase activity
+747	GO:0009941	chloroplast envelope
+657	GO:0004672	protein kinase activity
+656	GO:0030424	axon
+654	GO:0005618	cell wall
+609	GO:0043231	intracellular membrane-bounded organelle
+609	GO:0004842	ubiquitin-protein ligase activity
+608	GO:0005773	vacuole
+606	GO:0042803	protein homodimerization activity
+604	GO:0048471	perinuclear region of cytoplasm
+602	GO:0005887	integral to plasma membrane
+587	GO:0005792	microsome
+573	GO:0005743	mitochondrial inner membrane
+571	GO:0030425	dendrite
+549	GO:0005667	transcription factor complex
+540	GO:0005622	intracellular
+534	GO:0005524	ATP binding
+519	GO:0046777	protein autophosphorylation
+511	GO:0005604	basement membrane
+510	GO:0005635	nuclear envelope
+Evidence Code: IEP
+387	GO:0042493	response to drug
+382	GO:0046686	response to cadmium ion
+273	GO:0009651	response to salt stress
+257	GO:0033554	cellular response to stress
+250	GO:0009409	response to cold
+217	GO:0014070	response to organic cyclic compound
+197	GO:0001666	response to hypoxia
+194	GO:0009408	response to heat
+175	GO:0009737	response to abscisic acid stimulus
+170	GO:0009611	response to wounding
+155	GO:0007568	aging
+146	GO:0007420	brain development
+133	GO:0032496	response to lipopolysaccharide
+127	GO:0009753	response to jasmonic acid stimulus
+125	GO:0010200	response to chitin
+124	GO:0007283	spermatogenesis
+122	GO:0080167	response to karrikin
+119	GO:0032355	response to estradiol stimulus
+118	GO:0009751	response to salicylic acid stimulus
+116	GO:0009414	response to water deprivation
+109	GO:0010033	response to organic substance
+108	GO:0045471	response to ethanol
+105	GO:0048102	autophagic cell death
+105	GO:0009617	response to bacterium
+105	GO:0007584	response to nutrient
+104	GO:0051384	response to glucocorticoid stimulus
+104	GO:0035071	salivary gland cell autophagic cell death
+99	GO:0043434	response to peptide hormone stimulus
+96	GO:0007623	circadian rhythm
+91	GO:0009733	response to auxin stimulus
+87	GO:0006979	response to oxidative stress
+86	GO:0042542	response to hydrogen peroxide
+84	GO:0007498	mesoderm development
+81	GO:0009416	response to light stimulus
+74	GO:0031100	organ regeneration
+73	GO:0042742	defense response to bacterium
+73	GO:0009612	response to mechanical stimulus
+72	GO:0006950	response to stress
+68	GO:0071456	cellular response to hypoxia
+67	GO:0009739	response to gibberellin stimulus
+67	GO:0009725	response to hormone stimulus
+67	GO:0001889	liver development
+66	GO:0009749	response to glucose stimulus
+63	GO:0043627	response to estrogen stimulus
+63	GO:0031667	response to nutrient levels
+60	GO:0010043	response to zinc ion
+60	GO:0007565	female pregnancy
+58	GO:0071260	cellular response to mechanical stimulus
+58	GO:0009624	response to nematode
+56	GO:0034097	response to cytokine stimulus
+Evidence Code: IGI
+705	GO:0045944	positive regulation of transcription from RNA polymerase II promoter
+555	GO:0008285	negative regulation of cell proliferation
+315	GO:0000122	negative regulation of transcription from RNA polymerase II promoter
+215	GO:0008284	positive regulation of cell proliferation
+209	GO:0007411	axon guidance
+188	GO:0008543	fibroblast growth factor receptor signaling pathway
+184	GO:0034613	cellular protein localization
+169	GO:0043066	negative regulation of apoptotic process
+167	GO:0001701	in utero embryonic development
+159	GO:0009952	anterior/posterior pattern specification
+151	GO:0048190	wing disc dorsal/ventral pattern formation
+120	GO:0016055	Wnt receptor signaling pathway
+112	GO:0042127	regulation of cell proliferation
+102	GO:0007095	mitotic cell cycle G2/M transition DNA damage checkpoint
+100	GO:0009953	dorsal/ventral pattern formation
+100	GO:0006357	regulation of transcription from RNA polymerase II promoter
+98	GO:0030324	lung development
+97	GO:0030178	negative regulation of Wnt receptor signaling pathway
+96	GO:0007507	heart development
+93	GO:0045893	positive regulation of transcription, DNA-dependent
+91	GO:0060070	canonical Wnt receptor signaling pathway
+88	GO:0043065	positive regulation of apoptotic process
+83	GO:0007626	locomotory behavior
+81	GO:0001756	somitogenesis
+79	GO:0001764	neuron migration
+78	GO:0045165	cell fate commitment
+78	GO:0043010	camera-type eye development
+78	GO:0030901	midbrain development
+78	GO:0030326	embryonic limb morphogenesis
+78	GO:0006915	apoptotic process
+74	GO:0060045	positive regulation of cardiac muscle cell proliferation
+74	GO:0042059	negative regulation of epidermal growth factor receptor signaling pathway
+73	GO:0009790	embryo development
+71	GO:0048704	embryonic skeletal system morphogenesis
+71	GO:0042472	inner ear morphogenesis
+71	GO:0007224	smoothened signaling pathway
+70	GO:0007605	sensory perception of sound
+62	GO:0035220	wing disc development
+62	GO:0007417	central nervous system development
+61	GO:0048096	chromatin-mediated maintenance of transcription
+61	GO:0030900	forebrain development
+61	GO:0002053	positive regulation of mesenchymal cell proliferation
+59	GO:0090099	negative regulation of decapentaplegic signaling pathway
+59	GO:0042475	odontogenesis of dentin-containing tooth
+56	GO:0004972	N-methyl-D-aspartate selective glutamate receptor activity
+55	GO:0050679	positive regulation of epithelial cell proliferation
+55	GO:0003700	sequence-specific DNA binding transcription factor activity
+55	GO:0002119	nematode larval development
+55	GO:0001889	liver development
+55	GO:0001843	neural tube closure
+Evidence Code: IMP
+7405	GO:0009792	embryo development ending in birth or egg hatching
+4622	GO:0000003	reproduction
+3613	GO:0040007	growth
+3595	GO:0002119	nematode larval development
+1958	GO:0040010	positive regulation of growth rate
+1905	GO:0040011	locomotion
+1376	GO:0008340	determination of adult lifespan
+1310	GO:0040035	hermaphrodite genitalia development
+1185	GO:0007411	axon guidance
+933	GO:0007507	heart development
+870	GO:0010171	body morphogenesis
+835	GO:0007605	sensory perception of sound
+766	GO:0019915	lipid storage
+748	GO:0045944	positive regulation of transcription from RNA polymerase II promoter
+726	GO:0001701	in utero embryonic development
+720	GO:0008285	negative regulation of cell proliferation
+682	GO:0006898	receptor-mediated endocytosis
+632	GO:0006915	apoptotic process
+603	GO:0009790	embryo development
+594	GO:0000122	negative regulation of transcription from RNA polymerase II promoter
+584	GO:0007626	locomotory behavior
+580	GO:0043066	negative regulation of apoptotic process
+550	GO:0002009	morphogenesis of an epithelium
+547	GO:0040018	positive regulation of multicellular organism growth
+523	GO:0000910	cytokinesis
+507	GO:0008284	positive regulation of cell proliferation
+484	GO:0007283	spermatogenesis
+483	GO:0006974	response to DNA damage stimulus
+478	GO:0009953	dorsal/ventral pattern formation
+446	GO:0042127	regulation of cell proliferation
+436	GO:0001756	somitogenesis
+435	GO:0045893	positive regulation of transcription, DNA-dependent
+432	GO:0048477	oogenesis
+432	GO:0007420	brain development
+425	GO:0007368	determination of left/right symmetry
+422	GO:0001525	angiogenesis
+415	GO:0009952	anterior/posterior pattern specification
+410	GO:0040027	negative regulation of vulval development
+408	GO:0016319	mushroom body development
+396	GO:0051216	cartilage development
+395	GO:0006355	regulation of transcription, DNA-dependent
+392	GO:0007052	mitotic spindle organization
+379	GO:0030900	forebrain development
+378	GO:0043473	pigmentation
+369	GO:0008283	cell proliferation
+365	GO:0018991	oviposition
+359	GO:0009791	post-embryonic development
+353	GO:0045892	negative regulation of transcription, DNA-dependent
+347	GO:0006911	phagocytosis, engulfment
+341	GO:0009405	pathogenesis
+Evidence Code: IPI
+48370	GO:0005515	protein binding
+802	GO:0046982	protein heterodimerization activity
+648	GO:0042802	identical protein binding
+634	GO:0042803	protein homodimerization activity
+576	GO:0008134	transcription factor binding
+459	GO:0019901	protein kinase binding
+313	GO:0019904	protein domain specific binding
+309	GO:0019899	enzyme binding
+304	GO:0005667	transcription factor complex
+265	GO:0008022	protein C-terminus binding
+223	GO:0005102	receptor binding
+179	GO:0043234	protein complex
+171	GO:0017053	transcriptional repressor complex
+167	GO:0031625	ubiquitin protein ligase binding
+163	GO:0008013	beta-catenin binding
+150	GO:0030165	PDZ domain binding
+114	GO:0017124	SH3 domain binding
+111	GO:0003677	DNA binding
+105	GO:0047485	protein N-terminus binding
+102	GO:0005634	nucleus
+99	GO:0002020	protease binding
+92	GO:0042826	histone deacetylase binding
+88	GO:0046332	SMAD binding
+85	GO:0017147	Wnt-protein binding
+82	GO:0005109	frizzled binding
+81	GO:0005178	integrin binding
+79	GO:0043425	bHLH transcription factor binding
+76	GO:0050839	cell adhesion molecule binding
+74	GO:0019900	kinase binding
+71	GO:0051260	protein homooligomerization
+71	GO:0045296	cadherin binding
+66	GO:0001085	RNA polymerase II transcription factor binding
+65	GO:0048306	calcium-dependent protein binding
+65	GO:0019903	protein phosphatase binding
+62	GO:0032133	chromosome passenger complex
+58	GO:0033612	receptor serine/threonine kinase binding
+57	GO:0046966	thyroid hormone receptor binding
+56	GO:0000307	cyclin-dependent protein kinase holoenzyme complex
+55	GO:0070491	repressing transcription factor binding
+53	GO:0032403	protein complex binding
+52	GO:0046875	ephrin receptor binding
+52	GO:0005516	calmodulin binding
+51	GO:0030332	cyclin binding
+49	GO:0030529	ribonucleoprotein complex
+49	GO:0003735	structural constituent of ribosome
+48	GO:0002039	p53 binding
+47	GO:0050699	WW domain binding
+45	GO:0051117	ATPase binding
+45	GO:0005080	protein kinase C binding
+45	GO:0000398	nuclear mRNA splicing, via spliceosome
