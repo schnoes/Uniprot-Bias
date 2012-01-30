@@ -1,7 +1,7 @@
 
 from Bio import SwissProt as SP
 from Bio import Entrez, Medline
-import matplotlib.pyplot as pyplot
+#import matplotlib.pyplot as pyplot
 from GO import go_utils as gu
 import MySQLdb
 import collections
@@ -575,6 +575,141 @@ def go_in_papers_goa(goa_path):
         printDict(papers_prots, 'papers_prots.txt')
     return papers, papers_prots
         
+###########################################################
+# go_tax_in_papers_goa
+###########################################################
+def go_tax_in_papers_goa(goa_path):
+    """Extract the GO & taxon ID data from the Uniprot GOA download"""
+    papers = {}
+    papers_prots = {}
+    for inline in file(goa_path):
+        if inline[0] == '!': continue
+        db, db_object_id, db_object_symbol, qualifier, go_id, \
+        db_reference, evidence, withit, aspect, \
+        db_object_name, synonym, db_object_type, \
+        taxon_id, date, assigned_by, \
+        annotation_extension, gene_product_form_id = inline.rstrip('\n').split('\t')
+        key_id = "%s:%s" % (db, db_object_id)
+
+        if db_reference[:4] != "PMID": # only take the PMIDs, don't care about anything else
+            continue
+        paper = db_reference.split(':')[1] # Paper = the PMID
+        if paper not in papers_prots:
+            #papers_prots holds how many proteins each paper annotates
+            #papers_prots[PMID] = {{key=Uniprot ID(key_id), value=# of times this paper annotates this protein}}
+            #it is possible for one paper to produce more than one GO annotation for the same protien
+            #Example: Unpript ID = Q9H1C4 and PMID = 19006693 
+            papers_prots[paper] = {key_id: 1}
+        else:
+            papers_prots[paper][key_id] = \
+                 papers_prots[paper].get(key_id,0)+1
+    
+        #Papers[PMID] = [a list of dicts: each dict containing 4 entries: swissProt ID entry (key='sp_id'), 
+        # go_id entry (key = 'go_id'), GO evidence code (key = 'go_ec'), NCBI taxon ID (key='taxon_id']
+        #print taxon_id
+        #taxon_id =  taxon_id[6:] # get rid of leading 'taxon:'
+        d1 = dict(sp_id=key_id, 
+                  go_id=go_id, 
+                  go_ec=evidence, 
+                  taxon_id=taxon_id)
+        papers.setdefault(paper,[]).append(d1)
+        
+    printDict(papers, 'papers.txt')
+    printDict(papers_prots, 'papers_prots.txt')
+    return papers, papers_prots
+###########################################################
+# go_tax_in_papers_goa_onlySP
+###########################################################
+#def go_tax_in_papers_goa_onlySP(goa_path):
+    """Extract the GO & taxon ID data from the Uniprot GOA download. Only 
+    hold onto Swiss Prot entries."""
+"""    papers = {}
+    papers_prots = {}
+    for inline in file(goa_path):
+        if inline[0] == '!': continue
+        db, db_object_id, db_object_symbol, qualifier, go_id, \
+        db_reference, evidence, withit, aspect, \
+        db_object_name, synonym, db_object_type, \
+        taxon_id, date, assigned_by, \
+        annotation_extension, gene_product_form_id = inline.rstrip('\n').split('\t')
+        key_id = "%s:%s" % (db, db_object_id)
+
+        #Swiss Prot IDs start with a 'P'
+        if key_id
+        if db_reference[:4] != "PMID": # only take the PMIDs, don't care about anything else
+            continue
+        paper = db_reference.split(':')[1] # Paper = the PMID
+        if paper not in papers_prots:
+            #papers_prots holds how many proteins each paper annotates
+            #papers_prots[PMID] = {{key=Uniprot ID(key_id), value=# of times this paper annotates this protein}}
+            #it is possible for one paper to produce more than one GO annotation for the same protien
+            #Example: Unpript ID = Q9H1C4 and PMID = 19006693 
+            papers_prots[paper] = {key_id: 1}
+        else:
+            papers_prots[paper][key_id] = \
+                 papers_prots[paper].get(key_id,0)+1
+    
+        #Papers[PMID] = [a list of dicts: each dict containing 4 entries: swissProt ID entry (key='sp_id'), 
+        # go_id entry (key = 'go_id'), GO evidence code (key = 'go_ec'), NCBI taxon ID (key='taxon_id']
+        d1 = dict(sp_id=key_id, 
+                  go_id=go_id, 
+                  go_ec=evidence, 
+                  taxon_id=taxon_id)
+        papers.setdefault(paper,[]).append(d1)
+        
+        printDict(papers, 'papers.txt')
+        printDict(papers_prots, 'papers_prots.txt')
+    return papers, papers_prots
+"""
+        
+###########################################################
+# count_taxonIDs
+###########################################################
+def count_taxonIDs(papers):
+    """Print out the taxon id info plus how many times that paper annotates that species.
+    *** Must use the 'papers' dict created from go_tax_in_papers_goa
+    """
+    taxonID_dict = {}
+    papersTaxonIDs_dict = {}
+    for pmid, data_list in papers.iteritems():
+        for go_dict in data_list:
+            taxonID = go_dict['taxon_id']
+            taxonID_dict[taxonID] = taxonID_dict.get(taxonID, 0) + 1 #how many times is this specie (taxonID) annotated
+        papersTaxonIDs_dict[pmid] = taxonID_dict  #associate that taxonID dict with the appropriate paper (pmid)
+        taxonID_dict = {}
+    printDict(papersTaxonIDs_dict, "papersTaxonIDs_dict.txt")
+    return papersTaxonIDs_dict
+
+###########################################################
+# print_papers_taxonIDs
+###########################################################
+def print_papers_taxonIDs(papersTaxonIDs_dict, papers_annots2_dict, sortedProtsPerPaper_tuple, outpath, top=20):            
+    """Print out what Taxon IDs are annotated by a paper and how many times it annotates this species. Print out only 
+    the top 'top'. Also print out the related information about the paper.
+    """
+    outFile = open(outpath, 'w')
+    #print out header line
+    outFile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\n" % 
+                  ('Num Prots', 'Num Annotations', 'PMID', 'Title', 'Year', 'Journal', 'Taxon ID', 'Num Used'))
+    out_list = []
+    for sortedPaper in sortedProtsPerPaper_tuple[0:top]:
+        # add the number of proteins & the PMID
+        out_list.append(str(sortedPaper.numProts)) #[0]
+        out_list.append(str(sortedPaper.PMID)) # will be [2]
+        # get paper info
+        out_list.extend(papers_annots2_dict[sortedPaper.PMID][1:]) #add title, year & journal [3, 4, 5]
+        out_list.insert(1, str(papers_annots2_dict[sortedPaper.PMID][0])) # add number of annotations, [1]
+        taxonID_dict = papersTaxonIDs_dict[sortedPaper.PMID]
+        print taxonID_dict
+        for taxonID, num in taxonID_dict.iteritems():
+            out_list.extend(([str(taxonID), str(num)])) # add taxon id info [6, 7....]
+        outFile.write('\t'.join((out_list)))
+        outFile.write('\n')
+        out_list = []
+        
+    outFile.close()  
+    return
+    
 
 def get_go_evidence_codes(sp_rec):
     # isolate go evidence codes from sp_rec
