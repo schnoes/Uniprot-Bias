@@ -1,10 +1,22 @@
 import cPickle
 import sp_tools
 
-papersExp_handle = open('goa-pickles/goa_exp_papers.pik', 'rb')
+papersExp_handle = open('Uniprot-Bias/goa_exp_papers.pik', 'rb')
 papersExp_dict = cPickle.load(papersExp_handle)
-papers_protsExp_handle = open('goa-pickles/goa_exp_papers_prots.pik', 'rb')
+papers_protsExp_handle = open('Uniprot-Bias/goa_exp_papers_prots.pik', 'rb')
 papers_protsExp_dict = cPickle.load(papers_protsExp_handle)
+papersTaxExp_handle = open('Uniprot-Bias/goa_taxid_exp_papers.pik', 'rb')
+papersTaxExp_dict = cPickle.load(papersTaxExp_handle)
+
+
+#count all the annotations & the annotations per Ev Code
+allECCode_dict = sp_tools.count_all_annotations_per_ec(papersExp_dict)
+
+# count all the term type annotations
+sum_tt_count = sp_tools.count_all_term_types(papersExp_dict)
+
+# count all the species annotations
+all_taxonID_dict = sp_tools.count_all_annotations_taxonIDs(papersTaxExp_dict)
 
 #top go codes
 top = 50
