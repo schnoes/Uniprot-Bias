@@ -1,6 +1,7 @@
 import cPickle
 import sp_tools
 
+#load up the pre-pickled data
 papersExp_handle = open('Uniprot-Bias/goa_exp_papers.pik', 'rb')
 papersExp_dict = cPickle.load(papersExp_handle)
 papers_protsExp_handle = open('Uniprot-Bias/goa_exp_papers_prots.pik', 'rb')

@@ -5,6 +5,8 @@ from Bio import Entrez, Medline
 from GO import go_utils as gu
 import MySQLdb
 import collections
+import getpass
+import os.path
 
 
 # edits: AMS Jan 4, 2012
@@ -28,12 +30,14 @@ MY_EMAIL = 'schnoes@gmail.com'
 ###########################################################
 def mysqlConnect():
     """This is where you set all the mysql login, db info"""
-    return MySQLdb.connect(host="mysql-dev.cgl.ucsf.edu", user="schnoes",
-                   passwd="schnoes", db="GeneOntology", port=13308)
+    configFilePath = os.path.join(os.path.expanduser("~" + getpass.getuser()), '.my.cnf')
+    return MySQLdb.connect(db="GeneOntology", read_default_file=configFilePath, host="mysql-dev.cgl.ucsf.edu", 
+                           port=13308)
+     
 
 
 def exp_in_papers(papers,papers_prots):
-    # Annotations with experimental evidence codes only
+    # Pulls out Annotations with experimental evidence codes only
     # exp_papers_prots: key: pubmed_id; value: protein count dictionary
     # A protein count dictionary: key: UniProtID; value: count of that protein.
     # The protein count is the number of different experimentally-evidenced GO codes this
@@ -505,13 +509,13 @@ def count_all_term_types(papers):
         for go_dict in dict_list:
             go_id = go_dict['go_id']
             term_type = gu.go_acc_to_term_type(go_id, go_cursor)
-            # tt_count[term_type] = count of that term
-            sum_tt_count[term_type] = sum_tt_count.get(term_type,0) + 1
+            # sum_tt_count_dict[term_type] = count of that term over all annotations
+            sum_tt_count_dict[term_type] = sum_tt_count_dict.get(term_type,0) + 1
             #print 1
             #print term_type
     go_con.close()
-    printDict_one_value(sum_tt_count, "TermTypeAllCount.txt")
-    return sum_tt_count # count of term types
+    printDict_one_value(sum_tt_count_dict, "TermTypeAllCount.txt")
+    return sum_tt_count_dict # count of term types
         
     
 def go_freq_in_papers(papers):
@@ -721,7 +725,8 @@ def count_top_go_terms_per_ecode_all_entries(papers, outpath=None, top=20):
 # count_all_annotations_per_ec
 ###########################################################
 def count_all_annotations_per_ec(papers):
-    """Print out the taxon id info plus how many times that paper annotates that species.
+    """Make and print out a dict that counts how many times a particular evidence code is used in annotation.
+    Also includes the total count of how many annotations there are total for all evidence codes.
     *** Must use the 'papers' dict created from go_tax_in_papers_goa
     """
     allECCode_dict = {}
@@ -730,7 +735,9 @@ def count_all_annotations_per_ec(papers):
         allAnnotCount = allAnnotCount + len(data_list)
         for go_dict in data_list:
             go_ec = go_dict['go_ec']
+            # allECCode_dict [go ec code] = count 
             allECCode_dict[go_ec] = allECCode_dict.get(go_ec, 0) + 1 #how many times is this ev code used?
+    # add 'all' count number
     allECCode_dict['all'] = allAnnotCount
     printDict_one_value(allECCode_dict, "allECCodeCount.txt")
     return allECCode_dict
@@ -751,6 +758,7 @@ def count_taxonIDs(papers):
         for go_dict in data_list:
             taxonID = go_dict['taxon_id']
             taxonID_dict[taxonID] = taxonID_dict.get(taxonID, 0) + 1 #how many times is this specie (taxonID) annotated
+        # papersTaxonIDs_dict [PMID] = { { taxonID : count } }
         papersTaxonIDs_dict[pmid] = taxonID_dict  #associate that taxonID dict with the appropriate paper (pmid)
         taxonID_dict = {}
     printDict(papersTaxonIDs_dict, "papersTaxonIDs_dict.txt")
@@ -760,13 +768,14 @@ def count_taxonIDs(papers):
 # count_all_annotations_taxonIDs
 ###########################################################
 def count_all_annotations_taxonIDs(papers):
-    """Print out the taxon id info plus how many times that taxon has been annotated.
+    """Count up how many times a particular species is annotated in goa. Print that out to a file.
     *** Must use the 'papers' dict created from go_tax_in_papers_goa
     """
     all_taxonID_dict = {}
     for pmid, dict_list in papers.iteritems():
         for go_dict in dict_list:
             taxonID = go_dict['taxon_id']
+            #all_taxonID_dict [ taxon ID ] = count
             all_taxonID_dict[taxonID] = all_taxonID_dict.get(taxonID, 0) + 1 #how many times is this specie (taxonID) annotated
     printDict_one_value(all_taxonID_dict, "AllTaxonIDsCount_dict.txt")
     return all_taxonID_dict
