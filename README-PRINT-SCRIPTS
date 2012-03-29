@@ -11,7 +11,7 @@
 ##########################################################################
 # print_ListPapersThatAnnotateMostProts.py
 ##########################################################################
-OUTPUT: allExpPaperInfoTop50.txt
+OUTPUT: allExpPaperInfoTop50.tsv
 This file lists the top X number of papers that annotate the most proteins.
 NB: This procedure does not 'de-duplicate' the proteins. It only counts up
 the proteins from each paper.

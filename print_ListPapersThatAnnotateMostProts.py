@@ -48,7 +48,7 @@ print "print_paper_per_prots: print out the results of the the top papers per pr
 print clock()
 sys.stdout.flush()
 sp_tools.print_paper_per_prots_go(papers_annots2_dict, all_tt_count, go_ec_count, allEvCodes_dict, 
-                         sortedProtsPerPaper_tuple, "allExpPaperInfoTop50.txt", top=top)
+                         sortedProtsPerPaper_tuple, "allExpPaperInfoTop50.tsv", top=top)
 print "all done"
 print clock()
 
