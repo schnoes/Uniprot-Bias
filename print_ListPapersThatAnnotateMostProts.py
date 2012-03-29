@@ -24,6 +24,11 @@ print clock()
 sys.stdout.flush()
 all_tt_count = sp_tools.term_types_all_papers(papersExp_dict) #takes a really long time
 
+print "cPikleDump: save that all_tt_count for later"
+print clock()
+sys.stdout.flush()
+sp_tools.cpickleDump(all_tt_count, "Uniprot-Bias/all_tt_count.pik")
+
 print "go_terms_with_ec_per_paper: Create a dict that counts up how many times a specific (GO ID, GO Term Text, EvCode) tuple occurs for each paper"
 print clock()
 sys.stdout.flush()
