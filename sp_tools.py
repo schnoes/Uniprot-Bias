@@ -5,6 +5,8 @@ from Bio import Entrez, Medline
 from GO import go_utils as gu
 import MySQLdb
 import collections
+import getpass
+import os.path
 
 
 # edits: AMS Jan 4, 2012
@@ -29,12 +31,14 @@ MY_EMAIL = 'schnoes@gmail.com'
 ###########################################################
 def mysqlConnect():
     """This is where you set all the mysql login, db info"""
-    return MySQLdb.connect(host="mysql-dev.cgl.ucsf.edu", user="schnoes",
-                   passwd="schnoes", db="GeneOntology", port=13308)
+    configFilePath = os.path.join(os.path.expanduser("~" + getpass.getuser()), '.my.cnf')
+    return MySQLdb.connect(db="GeneOntology", read_default_file=configFilePath, host="mysql-dev.cgl.ucsf.edu", 
+                           port=13308)
+     
 
 
 def exp_in_papers(papers,papers_prots):
-    # Annotations with experimental evidence codes only
+    # Pulls out Annotations with experimental evidence codes only
     # exp_papers_prots: key: pubmed_id; value: protein count dictionary
     # A protein count dictionary: key: UniProtID; value: count of that protein.
     # The protein count is the number of different experimentally-evidenced GO codes this
@@ -487,6 +491,33 @@ def term_types_in_paper(paper):
     go_con.close()
     return tt_count # count of term types
         
+
+###########################################################
+# count_all_term_types
+###########################################################
+def count_all_term_types(papers):
+    """For all entries, count how often different term types appear.
+    Possible term types:
+    biological_process
+    molecular_function
+    cellular_component
+    """
+    # term types (ontologies) in a given paper
+    sum_tt_count = {}
+    go_con = mysqlConnect()
+    go_cursor = go_con.cursor()
+    for pmid, dict_list in papers.iteritems():
+        for go_dict in dict_list:
+            go_id = go_dict['go_id']
+            term_type = gu.go_acc_to_term_type(go_id, go_cursor)
+            # sum_tt_count_dict[term_type] = count of that term over all annotations
+            sum_tt_count_dict[term_type] = sum_tt_count_dict.get(term_type,0) + 1
+            #print 1
+            #print term_type
+    go_con.close()
+    printDict_one_value(sum_tt_count_dict, "TermTypeAllCount.txt")
+    return sum_tt_count_dict # count of term types
+        
     
 def go_freq_in_papers(papers):
     # Frequency of GO terms in specific papers
@@ -552,6 +583,21 @@ def printDict(generic_dict, fileName):
         outFile.write("Value: " + str(value) + '\n')
     outFile.write('\n')
     outFile.close()
+
+###########################################################
+# printDict
+###########################################################
+def printDict_one_value(generic_dict, fileName):
+    """Just does a quick print of generic_dict to file fileName)"""
+    outFile = open(fileName, "w")
+
+    for key, value in generic_dict.iteritems():
+        outFile.write(str(key) + '\t')
+        outFile.write(str(value) + '\n')
+    outFile.write('\n')
+    outFile.close()
+
+
 
 
 def go_in_papers_goa(goa_path):
@@ -636,50 +682,6 @@ def go_tax_in_papers_goa(goa_path):
     printDict(papers, 'papers.txt')
     printDict(papers_prots, 'papers_prots.txt')
     return papers, papers_prots
-###########################################################
-# go_tax_in_papers_goa_onlySP
-###########################################################
-#def go_tax_in_papers_goa_onlySP(goa_path):
-    """Extract the GO & taxon ID data from the Uniprot GOA download. Only 
-    hold onto Swiss Prot entries."""
-"""    papers = {}
-    papers_prots = {}
-    for inline in file(goa_path):
-        if inline[0] == '!': continue
-        db, db_object_id, db_object_symbol, qualifier, go_id, \
-        db_reference, evidence, withit, aspect, \
-        db_object_name, synonym, db_object_type, \
-        taxon_id, date, assigned_by, \
-        annotation_extension, gene_product_form_id = inline.rstrip('\n').split('\t')
-        key_id = "%s:%s" % (db, db_object_id)
-
-        #Swiss Prot IDs start with a 'P'
-        if key_id
-        if db_reference[:4] != "PMID": # only take the PMIDs, don't care about anything else
-            continue
-        paper = db_reference.split(':')[1] # Paper = the PMID
-        if paper not in papers_prots:
-            #papers_prots holds how many proteins each paper annotates
-            #papers_prots[PMID] = {{key=Uniprot ID(key_id), value=# of times this paper annotates this protein}}
-            #it is possible for one paper to produce more than one GO annotation for the same protien
-            #Example: Unpript ID = Q9H1C4 and PMID = 19006693 
-            papers_prots[paper] = {key_id: 1}
-        else:
-            papers_prots[paper][key_id] = \
-                 papers_prots[paper].get(key_id,0)+1
-    
-        #Papers[PMID] = [a list of dicts: each dict containing 4 entries: swissProt ID entry (key='sp_id'), 
-        # go_id entry (key = 'go_id'), GO evidence code (key = 'go_ec'), NCBI taxon ID (key='taxon_id']
-        d1 = dict(sp_id=key_id, 
-                  go_id=go_id, 
-                  go_ec=evidence, 
-                  taxon_id=taxon_id)
-        papers.setdefault(paper,[]).append(d1)
-        
-        printDict(papers, 'papers.txt')
-        printDict(papers_prots, 'papers_prots.txt')
-    return papers, papers_prots
-"""
  
         
 ###########################################################
@@ -720,7 +722,30 @@ def count_top_go_terms_per_ecode_all_entries(papers, outpath=None, top=20):
         go_con.close()
     return ec_go_code_count
     
+###########################################################
+# count_all_annotations_per_ec
+###########################################################
+def count_all_annotations_per_ec(papers):
+    """Make and print out a dict that counts how many times a particular evidence code is used in annotation.
+    Also includes the total count of how many annotations there are total for all evidence codes.
+    *** Must use the 'papers' dict created from go_tax_in_papers_goa
+    """
+    allECCode_dict = {}
+    allAnnotCount = 0
+    for pmid, data_list in papers.iteritems():
+        allAnnotCount = allAnnotCount + len(data_list)
+        for go_dict in data_list:
+            go_ec = go_dict['go_ec']
+            # allECCode_dict [go ec code] = count 
+            allECCode_dict[go_ec] = allECCode_dict.get(go_ec, 0) + 1 #how many times is this ev code used?
+    # add 'all' count number
+    allECCode_dict['all'] = allAnnotCount
+    printDict_one_value(allECCode_dict, "allECCodeCount.txt")
+    return allECCode_dict
         
+
+
+
 ###########################################################
 # count_taxonIDs
 ###########################################################
@@ -734,10 +759,28 @@ def count_taxonIDs(papers):
         for go_dict in data_list:
             taxonID = go_dict['taxon_id']
             taxonID_dict[taxonID] = taxonID_dict.get(taxonID, 0) + 1 #how many times is this specie (taxonID) annotated
+        # papersTaxonIDs_dict [PMID] = { { taxonID : count } }
         papersTaxonIDs_dict[pmid] = taxonID_dict  #associate that taxonID dict with the appropriate paper (pmid)
         taxonID_dict = {}
     printDict(papersTaxonIDs_dict, "papersTaxonIDs_dict.txt")
     return papersTaxonIDs_dict
+
+###########################################################
+# count_all_annotations_taxonIDs
+###########################################################
+def count_all_annotations_taxonIDs(papers):
+    """Count up how many times a particular species is annotated in goa. Print that out to a file.
+    *** Must use the 'papers' dict created from go_tax_in_papers_goa
+    """
+    all_taxonID_dict = {}
+    for pmid, dict_list in papers.iteritems():
+        for go_dict in dict_list:
+            taxonID = go_dict['taxon_id']
+            #all_taxonID_dict [ taxon ID ] = count
+            all_taxonID_dict[taxonID] = all_taxonID_dict.get(taxonID, 0) + 1 #how many times is this specie (taxonID) annotated
+    printDict_one_value(all_taxonID_dict, "AllTaxonIDsCount_dict.txt")
+    return all_taxonID_dict
+
 
 ###########################################################
 # print_papers_taxonIDs

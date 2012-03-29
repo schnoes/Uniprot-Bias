@@ -1,0 +1,4 @@
+molecular_function	115440
+cellular_component	131804
+biological_process	274964
+
