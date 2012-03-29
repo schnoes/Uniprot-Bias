@@ -13,8 +13,8 @@
 ##########################################################################
 OUTPUT: allExpPaperInfoTop50.tsv
 This file lists the top X number of papers that annotate the most proteins.
-NB: This procedure does not 'de-duplicate' the proteins. It only counts up
-the proteins from each paper.
+NB: This procedure does NOT double count proteins. The number of proteins
+calculated do not contain duplicates.
 
 OUTPUT: all_tt_count.pik
 This is a pickle file that counts up all of the term types that were derived

@@ -59,6 +59,7 @@ def exp_in_papers(papers,papers_prots):
     # 'go_id': (GO ID); 'go_ec': (GO Evidence Code).
     # 
     # Can be used with SP & GOA data
+    # Note: This creates a non-redundant set of proteins. It does not dubble count proteins!
     
     exp_papers = {}
     exp_papers_prots = {}
@@ -370,6 +371,7 @@ def print_paper_per_prots_sorted_go(papers_annots2_dict, all_tt_count, go_ec_cou
     return
 
 
+
 ###########################################################
 # sort_papers_prots
 ###########################################################
@@ -381,6 +383,8 @@ def sort_papers_prots(papers_prots):
     sortedProtsPerPaper_tuple = sorted([ProtsPerPaper_collect(len(value), key) for (key, value) in papers_prots.items()],
                                        reverse=True)
     return sortedProtsPerPaper_tuple
+
+
 ###########################################################
 # sort_pmidTaxonIDs
 ###########################################################
@@ -394,6 +398,8 @@ def sort_pmidTaxonIDs(pmidTaxonIDs_dict):
     sortedPMIDPerTaxon_tuple = sorted([PMIDPerTaxon_collect(value, key) for (key, value) in pmidTaxonIDs_dict.items()],
                                        reverse=True)
     return PMIDPerTaxon_collect
+
+
 ###########################################################
 # sort_one_TaxonIDvPMIDs
 ###########################################################
