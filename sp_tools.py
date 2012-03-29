@@ -7,7 +7,7 @@ import MySQLdb
 import collections
 import getpass
 import os.path
-
+import cPickle
 
 # edits: AMS Jan 4, 2012
 
@@ -37,6 +37,16 @@ def mysqlConnect():
      
 
 
+###########################################################
+# cPickleDump
+###########################################################
+def cPickleDump(toDump_dict, pickleFileName):
+    """Dump the input dict to the input filename"""
+    dump_handle = open(pickleFileName, 'wb')
+    cPickle.dump(toDump_dict, dump_handle)
+    
+    
+    
 def exp_in_papers(papers,papers_prots):
     # Pulls out Annotations with experimental evidence codes only
     # exp_papers_prots: key: pubmed_id; value: protein count dictionary
@@ -364,8 +374,7 @@ def print_paper_per_prots_sorted_go(papers_annots2_dict, all_tt_count, go_ec_cou
 # sort_papers_prots
 ###########################################################
 def sort_papers_prots(papers_prots):
-    """Sort the dictionary papers_prots according to the number of proteins annotated by 
-    a particular paper (PMID). Return the sorted tuple (sorted highest to lowest) as a 
+    """`Return the sorted tuple (sorted highest to lowest) as a 
     named tuple."""
     ProtsPerPaper_collect = collections.namedtuple('ProtsPerPaper_collect', 'numProts PMID')
     #creates a tuple of (numProts, PMID) sorted on numProts highest to lowest
