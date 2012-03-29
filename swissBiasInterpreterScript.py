@@ -10,6 +10,18 @@ papersTaxExp_handle = open('Uniprot-Bias/goa_taxid_exp_papers.pik', 'rb')
 papersTaxExp_dict = cPickle.load(papersTaxExp_handle)
 
 
+
+#Print out PMID info per TaxonID
+top = 50
+pmidTaxonIDs_dict = sp_tools.count_PMID_in_taxonID(papersTaxExp_dict)
+papers_annots2_dict = sp_tools.top_papers_dict(papersExp_dict, papers_protsExp_dict, top=500)
+taxonIDFile = 'Uniprot-Bias/handTax50list.txt'
+sp_tools.print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annots2_dict, "AllPMIDvTaxonIDsTop50.txt", True,  top)
+
+
+
+
+
 #count all the annotations & the annotations per Ev Code
 allECCode_dict = sp_tools.count_all_annotations_per_ec(papersExp_dict)
 
@@ -32,6 +44,19 @@ allEvCodes_dict = sp_tools.ev_codes_all_papers(papersExp_dict)
 sortedProtsPerPaper_tuple = sp_tools.sort_papers_prots(papers_protsExp_dict)
 sp_tools.print_paper_per_prots_go(papers_annots2_dict, all_tt_count, go_ec_count, allEvCodes_dict, 
                          sortedProtsPerPaper_tuple, "allExpPaperInfoTop50.txt", top=top)
+
+
+# going for the top fifty papers
+top = 50
+papers_annots2_dict = sp_tools.top_papers_dict(papersExp_dict, papers_protsExp_dict, top=top)
+all_tt_count = sp_tools.term_types_all_papers(papersExp_dict) #takes a really long time
+go_ec_count = sp_tools.go_terms_with_ec_per_paper(papersExp_dict, top=top) # this takes a bit of time too
+GO_EC_Count_collect_tuple = sp_tools.sort_go_ec_count(go_ec_count)
+allEvCodes_dict = sp_tools.ev_codes_all_papers(papersExp_dict)
+sortedProtsPerPaper_tuple = sp_tools.sort_papers_prots(papers_protsExp_dict)
+sp_tools.print_paper_per_prots_go(papers_annots2_dict, all_tt_count, go_ec_count, allEvCodes_dict, 
+                         sortedProtsPerPaper_tuple, "allExpPaperInfoTop50.txt", top=top)
+
 
 
 #Make the taxon ID pickle info
