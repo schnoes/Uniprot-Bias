@@ -1,0 +1,18 @@
+load up the pre-pickled data
+top_papers_dict: Get all the PMID info for the top papers
+6.179262
+['16287169', '18981222', '17412918', '12529438', '16502469', '11591653', '11099034', '11099033', '11914276', '18633119', '16336044', '12938931', '20422638', '16189514', '12865426', '15539469', '12445391', '12529643', '14671022', '17151019', '18433294', '16618929', '17644812', '11256614', '21529718', '16429126', '14576278', '17417969', '11231151', '17432890', '17704769', '12657046', '15028209', '20061580', '14532352', '21533090', '16823961', '15489339', '21166475', '15525680', '12529635', '17317660', '14651853', '15791247', '18431481', '14562095', '14551910', '18614015', '16823372', '18029348']
+term_types_all_papers: Count up all the terms types for each paper
+6.489723
+cPikleDump: save that all_tt_count for later
+178.334522
+go_terms_with_ec_per_paper: Create a dict that counts up how many times a specific (GO ID, GO Term Text, EvCode) tuple occurs for each paper
+179.776966
+ev_codes_all_papers: Calculate the number of times a paper gives a certain experimental evidence code.
+273.028069
+sort_papers_prots: Sort the dictionary papers_prots according to the number of proteins annotated by a particular paper (PMID).
+273.607024
+print_paper_per_prots: print out the results of the the top papers per proteins
+274.387834
+all done
+274.390925

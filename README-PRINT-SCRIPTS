@@ -1,0 +1,25 @@
+##########################################################################
+# README-PRINT-SCRIPTS:
+# This readme describes the purpose of all of the separate print scripts
+# that have been put together that create various different data outputs
+# for the Uniprot-bias paper.
+##########################################################################
+
+
+
+
+##########################################################################
+# print_ListPapersThatAnnotateMostProts.py
+##########################################################################
+OUTPUT: allExpPaperInfoTop50.txt
+This file lists the top X number of papers that annotate the most proteins.
+NB: This procedure does not 'de-duplicate' the proteins. It only counts up
+the proteins from each paper.
+
+OUTPUT: all_tt_count.pik
+This is a pickle file that counts up all of the term types that were derived
+from each paper. This takes a while to calculate (forever if you are off campus)
+So code was added so that when it was created, the data would just be pickled,
+saving us from unnecessarily recalculating it.
+
+LOG_FILE: LOG_ListPapersThatAnnotateMostProts.log
