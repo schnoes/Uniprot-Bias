@@ -952,6 +952,38 @@ def count_all_annotations_taxonIDs(papers):
 
 
 ###########################################################
+# count_all_annotations_and_proteins_taxonIDs
+###########################################################
+def count_all_annotations_and_proteins_taxonIDs(papers, outpath):
+    """Count up how many times a particular species is annotated in goa and see how many proteins it annotates. Print that out to a file.
+    *** Must use the 'papers' dict created from go_tax_in_papers_goa
+    """
+    all_taxonID_annot_dict = {}
+    all_taxonID_prot_dict = {}
+    for pmid, dict_list in papers.iteritems():
+        for go_dict in dict_list:
+            taxonID = go_dict['taxon_id']
+            uniprotID = go_dict['sp_id']
+            #all_taxonID_annot_dict [ taxon ID ] = count
+            all_taxonID_annot_dict[taxonID] = all_taxonID_annot_dict.get(taxonID, 0) + 1 #how many times is this specie (taxonID) annotated
+            if uniprotID in all_taxonID_prot_dict[taxonID]:
+                pass
+            else:
+                all_taxonID_prot_dict[taxonID].append(uniprotID)
+    
+    out_handle = open(outpath, "w")
+    out_handle.write("Num Prots\tNum Annots\tTaxID\n")
+    for taxonID, count in all_taxonID_annot_dict:
+        out_handle.write(str(len(all_taxonID_prot_dict[taxonID])))
+        out_handle.write(str(count))
+        out_handle.write(taxonID)
+        out_handle.write("\n")
+    #printDict_one_value(all_taxonID_annot_dict, "AllTaxonIDsCount_dict.txt")
+    #return all_taxonID_dict
+    out_handle.close()
+
+
+###########################################################
 # print_papers_taxonIDs
 ###########################################################
 def print_papers_taxonIDs(papersTaxonIDs_dict, papers_annots2_dict, sortedProtsPerPaper_tuple, outpath, top=20):            
