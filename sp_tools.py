@@ -966,16 +966,21 @@ def count_all_annotations_and_proteins_taxonIDs(papers, outpath):
             uniprotID = go_dict['sp_id']
             #all_taxonID_annot_dict [ taxon ID ] = count
             all_taxonID_annot_dict[taxonID] = all_taxonID_annot_dict.get(taxonID, 0) + 1 #how many times is this specie (taxonID) annotated
-            if uniprotID in all_taxonID_prot_dict[taxonID]:
-                pass
+            if taxonID in all_taxonID_prot_dict:
+                if uniprotID in all_taxonID_prot_dict[taxonID]:
+                    pass
+                else:
+                    all_taxonID_prot_dict[taxonID].append(uniprotID)
             else:
-                all_taxonID_prot_dict[taxonID].append(uniprotID)
+                all_taxonID_prot_dict[taxonID] = [uniprotID]
     
     out_handle = open(outpath, "w")
     out_handle.write("Num Prots\tNum Annots\tTaxID\n")
-    for taxonID, count in all_taxonID_annot_dict:
+    for taxonID, count in all_taxonID_annot_dict.iteritems():
         out_handle.write(str(len(all_taxonID_prot_dict[taxonID])))
+        out_handle.write("\t")
         out_handle.write(str(count))
+        out_handle.write("\t")
         out_handle.write(taxonID)
         out_handle.write("\n")
     #printDict_one_value(all_taxonID_annot_dict, "AllTaxonIDsCount_dict.txt")
@@ -1034,6 +1039,8 @@ def readInTaxon(taxonIdFile):
 def print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annots2_dict,  outpath, oneFile=True, top=20):
     """Take in a list of taxon IDs and then print out the top 'top' of the papers that annotate that species"""
     taxonID_list = readInTaxon(taxonIDFile)
+    if os.path.exists(outpath):
+        os.remove(outpath)
     for taxon in taxonID_list:
         if oneFile != True: # do not print all the output to one file. 
             outpathNew = outpath + "_" + taxon + ".txt" #print it id'd by the taxonID
