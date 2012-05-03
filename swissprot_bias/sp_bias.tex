@@ -116,7 +116,7 @@
 %%                                          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Sources of Experimental Function Annotation in UniProt-GoA and implications for
+\title{Source of Functional Annotations in UniProtKB and implications for
 Function Prediction}
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -134,12 +134,15 @@ Function Prediction}
 
 
 \author{Alexandra Schnoes$^1$%
-       \email{Alexandra Schnoes - alexandra.schnoes@ucsf.edu}%
+       \email{Alexandra Schnoes - schnoes@ucsf.edu}%
       \and
          Alexander Thorman$^2$%
          \email{Alexander Thorman - thormanaaw@muohio.edu}
-       and 
-        Iddo Friedberg\correspondingauthor$^{2,3}$%
+       \and 
+         Patricia C Babbitt$^1$%
+         \email{Patricia C Babbitt - babbitt@ucsf.edu}%
+        and
+         Iddo Friedberg\correspondingauthor$^{2,3}$%
         \email{Iddo Friedberg\correspondingauthor - i.friedberg@muohio.edu}
       }
       
@@ -151,7 +154,8 @@ Function Prediction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \address{%
-    \iid(1)Department of Bioengineering and Therapeutic Sciences, University of California San Francisco, San Francisco, CA, USA\\
+    \iid(1)UCSF,%
+        San Francisco, CA, USA\\
     \iid(2)Department of Microbiology, Miami University, Oxford, OH USA\\
     \iid(3)Department of Computer Science and Software Engineering , Miami University, Oxford, OH USA
 }%
@@ -178,24 +182,22 @@ Function Prediction}
 \begin{abstract}
         % Do not use inserted blank lines (ie \\) until main body of text.
         \paragraph*{Background:} Computational protein function
-prediction programs rely upon well-annotated databases for testing and training
+prediction programs rely upon well-annotated databases for training
 their algorithms. These databases, in turn, rely upon the work of curators
-to capture experimental findings from scientific literature and apply them to protein
-sequence data. However, due to high-throughput experimental
-assays, it is possible that a small number of  experimental papers could dominate
-the functional protein annotations collected in databases. 
+applying experimental findings from scientific literature to protein
+sequence data. However, due to various high-throughput experimental
+assays, there are a few papers that dominate the protein annotations.
 Here we investigate just how prevalent is the ``few papers --
 many proteins'' bias. We discuss how this bias affects our view of the
 protein function universe, and consequently our ability to predict
 protein function.
       
-        \paragraph*{Results:} We examine the annotation of
-UniProtKB by the Gene Ontology Annotation project (GOA), and show that
-the distribution of proteins per paper is a log-odd, with X papers
-dominating X\% of the annotations. Since each of the dominant papers
-describes the use of an assay that can find only one function or a small
-group of functions, this leads to a substantial bias in what we know
-about the function of many proteins.
+        \paragraph*{Results:} We examine the annotation of UniProtKB by the Gene
+Ontology Annotation project (GOA), and show that the distribution of proteins
+annotated per paper follows a scale-free distribution, with X papers dominating X\%
+of the annotations. Since each of the dominant papers describes the use of an assay
+that can find only one function or a small group of functions, this leads to a
+substantial bias in what we know about the function of many proteins.
 
         \paragraph*{Conclusions:} Given the experimental techniques
 available, the protein function annotation bias is unavoidable. Knowing
@@ -244,9 +246,14 @@ anyone who uses protein function annotation data to plan experiments.
 %% Background %%
 %%
 \section*{Background}
-Functional annotation of proteins is a cardinal challenge in molecular biology today. The continuing revolution in sequencing technology means that the conversation has shifted from realizing the \$1000 genome to the one-hour genome  \cite{PMID 22443932}. This ongoing race to extremely rapid and low cost genomic data is creating a flood of sequence data that requires intensive analysis and characterization before it can be useful for the general scientific public. A large proportion of this computational work will involve ascribing functional data to these newly determined sequences, a process that is neither simple nor inexpensive \cite{gerstein paper PMID 21867570}. However, this functional annotation work is critical in order for the potential of these sequence data to be fully realized. Recent work has shown that  the ability to accurately ascribe function through computational means is challenging and open problem \cite{schnoes paper? cafa paper?}. In order to aid current annotation procedures and improve computational function prediction algorithms, sources of high-quality, experimentally derived functional data are necessary. Currently, one of the few repositories of such data is the UniProt-GOA database \cite{U-GOA ref}, which contains both computationally derived and literature derived functional information. The literature derived information is extracted by human curators who  capture functional data from publications, assign the data to its appropriate place in the Gene Ontology hierarchy \cite{GO ref} and label them with appropriate functional evidence codes. The UniProt-GOA database is one of only a small number of databases that explicitly connects functional data, publication reference and evidence codes to specific, experimentally studied sequences. In addition, annotations captured in UniProt-GOA directly impact the annotations in the UniProt/Swiss-Prot database, widely considered the largest gold standard set of functional data \cite{swissprot ref} available. 
+ Text for this section.
 
-It is important, therefore, to understand the some of trends and biases encapsulated by the UniProt-GOA database as it impacts well-used sister databases and function prediction algorithm development and training. One concern surrounding the capture of functional data from papers, is the propensity of high-throughput experimental work to become a large proportion of the data in UniProt-GOA. While high-throughput experimentation has revolutionized our ability to examine function on a large scale, typically the read-outs from these experiments are only very general function descriptions that lack specificity and, therefore, are assigned high in the GO ontology tree (depth in the GO tree indicates functional specificity). These data are arguably less useful than explicit descriptions of enzyme activity or biological role. However, given the prevalence of high-throughput experimentation, there is potentially a "few-paper, many proteins" bias in which a small number of papers (and thereby, non-specific function annotations) dominate the database content. The goal of our study here was to examine whether UniProt-GOA contains an annotation bias towards high throughput, low information papers. 
+Functional annotation of proteins is a cardinal challenge in molecular biology today. It has
+been said that while we may soon reach the \$1,000 genome (and for some prokaryotes, indeed
+we have), we will still need to pay \$20,000 analysis bill. There are and estimated XXX
+non-redundant open reading frame sequences, but less than 40\% are functionally annotated.
+Moreover, the majority of functional annotations 
+
 
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -259,7 +266,7 @@ It is important, therefore, to understand the some of trends and biases encapsul
 high-throughput experiments it has become possible to conduct
 large-scale interrogations of protein functions. Some papers therefore
 reveal one or more functional aspects of a large amount of proteins
-which respond to the particular type of interrogation conducted. To 
+which respond to the particular type of interrogation conducted. To
 understand how prevalent this phenomenon is, we looked at the UniprotKB
 gene ontology annotation files, or UniProt GOA. UniProtKB is annotated
 by GO terms both manually and automatically using an exacting procedure
@@ -303,7 +310,7 @@ evidence, and with those which are non-experimental. The results are shown in
 Figure\ref{fig:papers-prots}.
 
 As can be seen in Figure\ref{fig:papers-prots}, the distribution of proteins
-annotated per paper follows a log-odds ZZZcheckthis ratio.  Many proteins are annotated by a
+annotated per paper follows a scale-free distribution.  Many proteins are annotated by a
 few papers. (ZZZNeed to look at the percentage of proteins annotated by the top
 10, top 20 papers.) We therefore conclude that there is indeed a bias in
 experimental annotations, in which there are few papers that annotate a large
@@ -313,30 +320,31 @@ Our next question was how much annotation bias these papers introduce. We decide
 to look who are the top contributing papers to protein annotation in
 UniProtKB-GOA, and what type of GO terms they contribute.  The results to the
 first question are summarized in Table\ref{table:top-papers}.  As can be seen,
-almost all of the papers are specific to a single species (typically a model
+each paper is specific to a single species (typically a model
 organism) and assay that is used to annotate the proteins in that organism. Since
 a single assay was used, then typically only one ontology (MF, BP or CC) was
 annotated. 
  
 \subsection*{Annotation bias in model organisms}
-To see how much a single species-- and method-- specific large-scale assay
-affects the entire annotation of a species, we examined the relative contribution
-of each paper to the entire corpus of experimentally annotated protein in that species.
-All the species we examined were model organisms, as all the top annotation-contributing papers
-dealt with model organisms. 
-The results are summarized in Figure\ref{fig:rel-contrib}.
+
+To see how much a single species-- and method-- specific large-scale assay affects
+the entire annotation of a species, we examined the relative contribution of each
+paper to the entire corpus of experimentally annotated protein in that species.  All
+the species we examined were model organisms, as all the top annotation-contributing
+papers dealt with model organisms.  The results are summarized in
+Figure\ref{fig:rel-contrib}.
 
 \subsection*{Annotation quality}
 
 One reflection on annotation coverage is the number of GO terms assigned to any
 given protein. Ostensibly, the larger the number of GO terms that are assigned to a
 protein, the more comprehensive its annotation, provided that these terms are
-non-redundant, i.e.  not direct parents of each other. 
+non-redundant, i.e. not direct parents of each other. 
 
 The median number of annotations per protein was 1.09, which means that most of the top-50
 papers do not provide more than a single GO-term per annotation. Also, the mean number of
 annotations per protein was 1.59. The difference between the mean and median reflects that
-most papers have an annotations-per-protein ration which is close to 1, whereas few have a
+most papers have an annotations-per-protein ratio which is close to 1, whereas few have a
 higher annotation ratio. As shown in Figure~\ref{fig:annotation-ratio}, that is essentially
 the case. Seven papers had an annotations per proteins ratio which is above 2. Those
 were paper numbers 1, 4, 10, 23, 34 and 43 on the list. We decided to examine these papers
@@ -350,12 +358,11 @@ In this microscopy-based study, the authors used specific staining techniques an
 confocal microscopy to describe the subcellular localization of 4937 proteins, which
 were each assigned to one or more of ten different subcellular compartments. Since
 proteins may be assigned to more than a single compartment, there is a mean of 2.23
-GO annotations per protein. The most frequent term was GO:0016235
-\textit{centrosome} which is defined as ``an inclusion body formed by
-dynein-dependent retrograde transport of an aggregated protein on
-microtubules''\cite{PMID:11121744}. 
+GO annotations per protein. 
+\cite{PMID:11121744}. 
 
 
+It appears that most of the high-annotating papers are 
 
 
 
