@@ -3,6 +3,10 @@ import sp_tools
 from time import clock
 import sys
 
+# Usage:
+# python ./print_ListPapersThatAnnotateMostProts.py > ListPapersThatAnnotateMostProts.log 2>&1 
+
+
 #load up the pre-pickled data
 print "load up the pre-pickled data"
 papersExp_handle = open('Uniprot-Bias/goa_exp_papers.pik', 'rb')
@@ -44,7 +48,7 @@ print clock()
 sys.stdout.flush() 
 sortedProtsPerPaper_tuple = sp_tools.sort_papers_prots(papers_protsExp_dict)
 
-print "print_paper_per_prots: print out the results of the the top papers per proteins"
+print "print_paper_per_prots: print out the results of the the top papers per proteins. Final Ouptfile: allExpPaperInfoTop50.tsv"
 print clock()
 sys.stdout.flush()
 sp_tools.print_paper_per_prots_go(papers_annots2_dict, all_tt_count, go_ec_count, allEvCodes_dict, 

@@ -7,6 +7,7 @@ import MySQLdb
 import collections
 import getpass
 import os.path
+import os
 import cPickle
 
 # edits: AMS Jan 4, 2012
@@ -1036,7 +1037,7 @@ def readInTaxon(taxonIdFile):
 ###########################################################
 # print_papers_from_TaxonID_list
 ###########################################################
-def print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annots2_dict,  outpath, oneFile=True, top=20):
+def print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annots2_dict,  outpath, papers, oneFile=True, top=20):
     """Take in a list of taxon IDs and then print out the top 'top' of the papers that annotate that species"""
     taxonID_list = readInTaxon(taxonIDFile)
     if os.path.exists(outpath):
@@ -1044,24 +1045,27 @@ def print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annot
     for taxon in taxonID_list:
         if oneFile != True: # do not print all the output to one file. 
             outpathNew = outpath + "_" + taxon + ".txt" #print it id'd by the taxonID
-            print_papers_for_one_taxonID(taxon,  pmidTaxonIDs_dict, papers_annots2_dict,  outpathNew, top)
+            print_papers_for_one_taxonID(taxon,  pmidTaxonIDs_dict, papers_annots2_dict,  outpathNew, papers, top)
         else:
-            print_papers_for_one_taxonID(taxon,  pmidTaxonIDs_dict, papers_annots2_dict,  outpath, top)
+            print_papers_for_one_taxonID(taxon,  pmidTaxonIDs_dict, papers_annots2_dict,  outpath, papers, top)
     
 
 
 ###########################################################
 # print_papers_for_one_taxonID
 ###########################################################
-def print_papers_for_one_taxonID(taxonID,  pmidTaxonIDs_dict, papers_annots2_dict,  outpath, top=20):            
+def print_papers_for_one_taxonID(taxonID,  pmidTaxonIDs_dict, papers_annots2_dict, outpath, papers, top=20):            
     """Print out what Taxon IDs are annotated by a paper and how many times it annotates this species. Print out only 
     the top 'top'. Also print out the related information about the paper.
+    
+    NOTE BUG HERE! NOT COUNTING PROTEINS CORRECTLY!!!!!!!!!!!!!!
+    
     """
     outFile = open(outpath, 'a')
     #print out header line
     #things to add... num annotations, name of species
-    outFile.write("%s\t%s\t%s\t%s\t%s\t%s\n" % 
-                  ('Num Prots', 'PMID', 'Title', 'Year', 'Journal', 'Taxon ID'))
+    outFile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % 
+                  ('Num Prots', 'NumAnnots', 'PMID', 'Title', 'Year', 'Journal', 'Taxon ID'))
     
     out_list = []
     sortedPMIDPerTaxon_tuple =  sort_one_TaxonIDvPMIDs(pmidTaxonIDs_dict[taxonID])
@@ -1072,7 +1076,7 @@ def print_papers_for_one_taxonID(taxonID,  pmidTaxonIDs_dict, papers_annots2_dic
         if sortedEntry.PMID in papers_annots2_dict:
             out_list.extend((papers_annots2_dict[sortedEntry.PMID][1:])) #add title, year & journal [3, 4, 5]
         else:
-            Entrez.email = MY_EMAIL
+            """Entrez.email = MY_EMAIL
             h = Entrez.efetch(db="pubmed", id=sortedEntry.PMID, 
                           rettype="medline", retmode="text")
             medrecs = list(Medline.parse(h))
@@ -1080,7 +1084,12 @@ def print_papers_for_one_taxonID(taxonID,  pmidTaxonIDs_dict, papers_annots2_dic
             year = [medrec.get("DP","?") for medrec in medrecs]
             journal = [medrec.get("JT", "?") for medrec in medrecs]
             out_list.extend(str([title, year , journal]))
-        #out_list.insert(1, str(papers_annots2_dict[sortedEntry.PMID][0])) # add number of annotations, [1]
+            """
+            out_list.extend([""])
+        
+        tmp_list =  papers[sortedEntry.PMID]
+        annots = len(tmp_list)   
+        out_list.insert(1, str(annots)) # add number of annotations, [1]
         out_list.append(str(taxonID))  #[6]
         outFile.write('\t'.join((out_list)))
         outFile.write('\n')
@@ -1088,6 +1097,25 @@ def print_papers_for_one_taxonID(taxonID,  pmidTaxonIDs_dict, papers_annots2_dic
         
     outFile.close()  
     return
+###########################################################
+# sum_num_prots_annot_over_taxID
+###########################################################
+#def sum_num_prots_annot_over_taxID(sortedProtsPerPaper_tuple, papers):
+    """Give continual sum over all the number of additional proteins annotated by each additional paper in each species"""
+"""    taxID_round_dict = {}
+    for tup in sortedProtsPerPaper_tuple:
+        
+    
+    
+    round = 1
+    for tup in sortedProtsPerPaper_tuple:
+        prot_list = papers[tup.PMID]
+        if round == 1:
+            
+        for dict_in_list in prot_list:
+            
+ """           
+
 
 def get_go_evidence_codes(sp_rec):
     # isolate go evidence codes from sp_rec

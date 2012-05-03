@@ -16,7 +16,7 @@ top = 50
 pmidTaxonIDs_dict = sp_tools.count_PMID_in_taxonID(papersTaxExp_dict)
 papers_annots2_dict = sp_tools.top_papers_dict(papersExp_dict, papers_protsExp_dict, top=500)
 taxonIDFile = 'Uniprot-Bias/handTax50list.txt'
-sp_tools.print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annots2_dict, "AllPMIDvTaxonIDsTop50.txt", True,  top)
+sp_tools.print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annots2_dict, "AllPMIDvTaxonIDsTop50.txt", papersExp_dict, True,  top)
 
 
 
