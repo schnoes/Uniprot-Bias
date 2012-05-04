@@ -9,6 +9,7 @@ import getpass
 import os.path
 import os
 import cPickle
+import datetime
 
 # edits: AMS Jan 4, 2012
 
@@ -891,7 +892,9 @@ def count_all_annotations_per_ec(papers):
             allECCode_dict[go_ec] = allECCode_dict.get(go_ec, 0) + 1 #how many times is this ev code used?
     # add 'all' count number
     allECCode_dict['all'] = allAnnotCount
-    printDict_one_value(allECCode_dict, "allECCodeCount.txt")
+    d = datetime.date.today()
+    finalOutputFile = "allECCodeCount." + str(d) + ".tsv"
+    printDict_one_value(allECCode_dict, finalOutputFile)
     return allECCode_dict
         
 

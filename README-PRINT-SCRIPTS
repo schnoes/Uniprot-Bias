@@ -6,12 +6,10 @@
 ##########################################################################
 
 
-
-
 ##########################################################################
 # print_ListPapersThatAnnotateMostProts.py
 ##########################################################################
-OUTPUT: allExpPaperInfoTop50.tsv
+OUTPUT: allExpPaperInfoTop50-<date>.tsv
 This file lists the top X number of papers that annotate the most proteins.
 NB: This procedure does NOT double count proteins. The number of proteins
 calculated do not contain duplicates.
@@ -23,3 +21,26 @@ So code was added so that when it was created, the data would just be pickled,
 saving us from unnecessarily recalculating it.
 
 LOG_FILE: LOG_ListPapersThatAnnotateMostProts.log
+
+
+
+##########################################################################
+# print_ListPapersThatAnnotateMostProtsLO.py
+##########################################################################
+OUTPUT: allExpPaperLeavesOnlyInfoTop50-<date>.tsv
+This file lists the top X number of papers that annotate the most proteins.
+NB: This procedure does NOT double count proteins. The number of proteins
+calculated do not contain duplicates.This script uses the 'leaves only' pickle
+instead of the pickle that contains all the data
+
+OUTPUT: all_tt_countLO.pik
+This is a pickle file that counts up all of the term types that were derived
+from each paper. This takes a while to calculate (forever if you are off campus)
+So code was added so that when it was created, the data would just be pickled,
+saving us from unnecessarily recalculating it.
+
+LOG_FILE: LOG_ListPapersThatAnnotateMostProtsLO.log
+
+
+
+

@@ -1,10 +1,14 @@
 import cPickle
 import sp_tools
 from time import clock
+import datetime
 import sys
 
 # Usage:
 # python ./print_ListPapersThatAnnotateMostProts.py > ListPapersThatAnnotateMostProts.log 2>&1 
+
+d = datetime.date.today()
+finalOutputFile = "allExpPaperInfoTop50." + str(d) + ".tsv"
 
 
 #load up the pre-pickled data
@@ -13,8 +17,8 @@ papersExp_handle = open('Uniprot-Bias/goa_exp_papers.pik', 'rb')
 papersExp_dict = cPickle.load(papersExp_handle)
 papers_protsExp_handle = open('Uniprot-Bias/goa_exp_papers_prots.pik', 'rb')
 papers_protsExp_dict = cPickle.load(papers_protsExp_handle)
-#papersTaxExp_handle = open('Uniprot-Bias/goa_taxid_exp_papers.pik', 'rb')
-#papersTaxExp_dict = cPickle.load(papersTaxExp_handle)
+all_tt_count_handle = open("Uniprot-Bias/all_tt_count.pik", 'rb')
+all_tt_count = cPickle.load(all_tt_count_handle)
 
 # going for the list of papers That annotate most proteins. Top designates how far down the list we go
 top = 50
@@ -48,11 +52,11 @@ print clock()
 sys.stdout.flush() 
 sortedProtsPerPaper_tuple = sp_tools.sort_papers_prots(papers_protsExp_dict)
 
-print "print_paper_per_prots: print out the results of the the top papers per proteins. Final Ouptfile: allExpPaperInfoTop50.tsv"
+print "print_paper_per_prots: print out the results of the the top papers per proteins. Final Ouptfile: allExpPaperInfoTop50.<date>.tsv"
 print clock()
 sys.stdout.flush()
 sp_tools.print_paper_per_prots_go(papers_annots2_dict, all_tt_count, go_ec_count, allEvCodes_dict, 
-                         sortedProtsPerPaper_tuple, "allExpPaperInfoTop50.tsv", top=top)
+                         sortedProtsPerPaper_tuple, finalOutputFile, top=top)
 print "all done"
 print clock()
 
