@@ -877,7 +877,7 @@ def count_top_go_terms_per_ecode_all_entries(papers, outpath=None, top=20):
 ###########################################################
 # count_all_annotations_per_ec
 ###########################################################
-def count_all_annotations_per_ec(papers):
+def count_all_annotations_per_ec(papers, outpath):
     """Make and print out a dict that counts how many times a particular evidence code is used in annotation.
     Also includes the total count of how many annotations there are total for all evidence codes.
     *** Must use the 'papers' dict created from go_tax_in_papers_goa
@@ -893,8 +893,7 @@ def count_all_annotations_per_ec(papers):
     # add 'all' count number
     allECCode_dict['all'] = allAnnotCount
     d = datetime.date.today()
-    finalOutputFile = "allECCodeCount." + str(d) + ".tsv"
-    printDict_one_value(allECCode_dict, finalOutputFile)
+    printDict_one_value(allECCode_dict, outpath)
     return allECCode_dict
         
 

@@ -5,6 +5,27 @@
 # for the Uniprot-bias paper.
 ##########################################################################
 
+##########################################################################
+# print_CountExpEvCodesAllGOA.py
+##########################################################################
+OUTPUT: allECCodeCount.<date>.tsv
+This file lists the count of evidence codes for experimental annotations in GOA.
+
+##########################################################################
+# print_CountExpEvCodesALO-GOA.py
+##########################################################################
+OUTPUT: allECCodeCount-LO.<date>.tsv
+This file lists the count of evidence codes for experimental annotations in GOA.
+This code uses only the 'leaves only' pickle of experimental annotations in GOA.
+
+
+
+
+
+
+
+
+
 
 ##########################################################################
 # print_ListPapersThatAnnotateMostProts.py
@@ -18,7 +39,8 @@ OUTPUT: all_tt_count.pik
 This is a pickle file that counts up all of the term types that were derived
 from each paper. This takes a while to calculate (forever if you are off campus)
 So code was added so that when it was created, the data would just be pickled,
-saving us from unnecessarily recalculating it.
+saving us from unnecessarily recalculating it. Need to adjust code depending
+on if you are loading this pickle or creating one.
 
 LOG_FILE: LOG_ListPapersThatAnnotateMostProts.log
 
@@ -37,7 +59,8 @@ OUTPUT: all_tt_countLO.pik
 This is a pickle file that counts up all of the term types that were derived
 from each paper. This takes a while to calculate (forever if you are off campus)
 So code was added so that when it was created, the data would just be pickled,
-saving us from unnecessarily recalculating it.
+saving us from unnecessarily recalculating it. Need to adjust code depending
+on if you are loading this pickle or creating one.
 
 LOG_FILE: LOG_ListPapersThatAnnotateMostProtsLO.log
 
