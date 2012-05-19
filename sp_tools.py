@@ -958,7 +958,8 @@ def count_all_annotations_taxonIDs(papers):
 # count_all_annotations_and_proteins_taxonIDs
 ###########################################################
 def count_all_annotations_and_proteins_taxonIDs(papers, outpath):
-    """Count up how many times a particular species is annotated in goa and see how many proteins it annotates. Print that out to a file.
+    """Count up how many times a particular species is annotated in goa and see how many proteins it annotates. 
+    Print that out to a file.
     *** Must use the 'papers' dict created from go_tax_in_papers_goa
     """
     all_taxonID_annot_dict = {}
@@ -968,7 +969,8 @@ def count_all_annotations_and_proteins_taxonIDs(papers, outpath):
             taxonID = go_dict['taxon_id']
             uniprotID = go_dict['sp_id']
             #all_taxonID_annot_dict [ taxon ID ] = count
-            all_taxonID_annot_dict[taxonID] = all_taxonID_annot_dict.get(taxonID, 0) + 1 #how many times is this specie (taxonID) annotated
+            #how many times is this species (taxonID) annotated?
+            all_taxonID_annot_dict[taxonID] = all_taxonID_annot_dict.get(taxonID, 0) + 1 
             if taxonID in all_taxonID_prot_dict:
                 if uniprotID in all_taxonID_prot_dict[taxonID]:
                     pass
@@ -978,17 +980,25 @@ def count_all_annotations_and_proteins_taxonIDs(papers, outpath):
                 all_taxonID_prot_dict[taxonID] = [uniprotID]
     
     out_handle = open(outpath, "w")
-    out_handle.write("Num Prots\tNum Annots\tTaxID\n")
+    
+    out_handle.write("Num Prots\tNum Annots\tTaxonID\tSpecies\n")
+
+    go_con = mysqlConnect()
+    go_cur = go_con.cursor()
     for taxonID, count in all_taxonID_annot_dict.iteritems():
+        speciesName = gu.go_species_name_from_taxonID(taxonID, go_cur)
         out_handle.write(str(len(all_taxonID_prot_dict[taxonID])))
         out_handle.write("\t")
         out_handle.write(str(count))
         out_handle.write("\t")
         out_handle.write(taxonID)
+        out_handle.write("\t")
+        out_handle.write(speciesName)
         out_handle.write("\n")
     #printDict_one_value(all_taxonID_annot_dict, "AllTaxonIDsCount_dict.txt")
     #return all_taxonID_dict
     out_handle.close()
+    go_con.close()
 
 
 ###########################################################

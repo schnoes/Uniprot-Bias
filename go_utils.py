@@ -61,7 +61,34 @@ def go_acc_to_synonym_name(acc, go_cursor):
 								AND id = term_id;", (acc), go_cursor)[0][0]
 	return name      
 
-
+def go_species_name_from_taxonID(taxonID, go_cursor):
+	"""Returns the species name from given NCBI Taxonony ID"""
+	taxon_list = taxonID.split("|")
+	full = ""
+	for taxon in taxon_list:
+		try:
+			genus = mysql_query("SELECT genus FROM species WHERE ncbi_taxa_id='%s';", 
+						(taxon[6:]), go_cursor)[0][0]
+		
+		except IndexError:
+			print "problem with Taxon ID, genus:", taxon[6:]
+			genus = ""
+		
+		try:
+			species = mysql_query("SELECT species FROM species WHERE ncbi_taxa_id='%s';", 
+						(taxon[6:]), go_cursor)[0][0]
+		except IndexError:
+			print "problem with Taxon ID, species:", taxon[6:]
+			species = ""
+		if ((len(taxon_list) > 1) and (full == "")): #Technically, could get rid of one of these comparisions
+			full = genus + " " + species			# But then the logic is less obvious.
+		elif ((len(taxon_list) > 1) and (full != "")):
+			full = full + " & " + genus + " " + species
+		else:
+			full = genus + " " + species
+			
+			
+	return full
 
 def go_acc_to_term_type(acc, go_cursor):
 	# find out which ontology this GO term belongs to
