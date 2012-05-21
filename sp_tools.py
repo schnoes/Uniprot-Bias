@@ -3,6 +3,7 @@ from Bio import SwissProt as SP
 from Bio import Entrez, Medline
 #import matplotlib.pyplot as pyplot
 from GO import go_utils as gu
+from time import sleep
 import MySQLdb
 import collections
 import getpass
@@ -263,7 +264,62 @@ def go_terms_with_ec_per_paper(papers,outpath=None,top=20):
     go_con.close()
     return go_ec_count
 
-
+###########################################################
+# print_uniprot_id_per_pmid
+###########################################################
+def print_uniprot_id_per_pmid(papers_annots2_dict, papers, sortedProtsPerPaper_tuple, outpath, top=20):
+    """Prints out the uniprot IDs and some paper information for each paper.
+    papers_annots2_dict: dict of the top X papers, with title, year and journal name
+    all_tt_count: this is a dict that gives how many term types each paper annotates
+    go_ec_count: this is a dict that gives how many times a paper gives a specific (go ID, go Name, Ev code) annotation
+    allEvCodes_dict: this is a dict that gives how many times a paper supports a given experimental ev Code (EEC global).
+    sortedProtsPerPaper_tuple: this is a sorted named tuple (largest first) of all the papers, sorted by the number of proteins the paper annotates
+    outpath: where the data will be printed out.
+    top: the number of papers we want to print out. Sorted by the number of proteins the paper annotates.
+    """
+    outFile = open(outpath, 'w')
+    #print out header line
+    outFile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % 
+                  ('Num Prots', 'Num Annots', 'PMID', 'Title', 'Year', 'Journal', 'Uniprot IDs'))
+    out_list = []
+    type_list = ['molecular_function', 'biological_process', 'cellular_component']
+    for sortedPaper in sortedProtsPerPaper_tuple[0:top]:
+        # add the number of proteins & the PMID
+        out_list.append(str(sortedPaper.numProts)) #[0]
+        out_list.append(str(sortedPaper.PMID)) # will be [2]
+        # get paper info
+        out_list.extend(papers_annots2_dict[sortedPaper.PMID][1:]) #add title, year & journal [3, 4, 5]
+        out_list.insert(1, str(papers_annots2_dict[sortedPaper.PMID][0])) # add number of annotations, [1]
+        for sortedPaper, uniprotDict_list in papers.iteritems():
+            for uniprot_dict in uniprotDict_list:
+                out_list.append(uniprot_dict['sp_id'])
+        
+        """
+        # get GO type info, [6, 7, 8]
+        for t in type_list:
+            try:
+                out_list.append(str(all_tt_count[sortedPaper.PMID][t]))
+            except:
+                out_list.append('0')
+        #get ev code data [9, 10, 11, 12, 13, 14]
+        for ec in sorted(EEC):
+            try:
+                out_list.append(str(allEvCodes_dict[(sortedPaper.PMID, ec)]))
+            except:
+                out_list.append('0')
+        # get GO ID info
+        goInfo_dict = go_ec_count[sortedPaper.PMID]
+        for key, value in goInfo_dict.iteritems(): # [15, 16, 17, 18....]
+            out_list.extend(list(key))
+            out_list.append(str(value))
+        """
+        outFile.write('\t'.join((out_list)))
+        outFile.write('\n')
+        out_list = []
+        
+    outFile.close()  
+    return
+    
 ###########################################################
 # print_paper_per_prots_go
 ###########################################################
@@ -587,6 +643,62 @@ def top_papers_dict(papers, papers_prots, outpath=None,delim="\t", top=None):
         fout.close()
     """
     return papers_annots2_dict
+
+###########################################################
+# all_NCBI_paper_info_dict
+###########################################################
+def all_NCBI_paper_info_dict(papers, papers_prots, outpath=None,delim="\t", top=None):
+    """This function fetches all the relevent PubMed info for each PMID in 'papers' 
+    (at the limit supplied in 'top') and puts it into a dict."""
+    #
+    # Can be used with SP & GOA data
+    
+    papers_annots = [(len(papers_prots[p]), p) for p in papers_prots]
+    ncbi_paper_dict = {}
+        
+    papers_annots.sort()
+    if top is None:
+        negTop = 0
+    else:
+        negTop = -top
+    idlist = [p[1] for p in papers_annots[negTop:]]
+    print idlist
+    #print str(len(idlist))
+    Entrez.email = MY_EMAIL
+    
+    batchSize = 499
+    totalCount = len(idlist)
+    
+    
+    for start in range(0,totalCount, batchSize):
+        end = min(totalCount, start+batchSize)
+        print start
+        print end
+        print totalCount
+        batch_list = idlist[start:end]
+        print batch_list
+        h = Entrez.efetch(db="pubmed", id=batch_list, 
+                          rettype="medline", retmode="text")
+        medrecs = list(Medline.parse(h))
+        titles = [medrec.get("TI","?") for medrec in medrecs]
+        years = [medrec.get("DP","?") for medrec in medrecs]
+        journals = [medrec.get("JT", "?") for medrec in medrecs]
+        for p, title, year, journal in zip(papers_annots[negTop:], titles,years, journals):
+        #papers_annots2_dict[PMID] = [# of total annotations, Title, Year, Journal] 
+            ncbi_paper_dict[p[1]] = [len(papers[p[1]]), title, year.split()[0].strip(), journal]
+            #print ncbi_paper_dict
+            """if outpath:
+            fout = open(outpath,"w")
+            print >> fout, "num proteins\tpubmed ID\tTitle\tYear\tJournal"
+            for p in papers_annots2:
+            print >> fout, "%d\t%s\t%s\t%s\t%s" % p
+            fout.close()
+            """
+    print "dict size is: " + str( len(ncbi_paper_dict))  
+    print ncbi_paper_dict     
+    return ncbi_paper_dict
+
+
 
 
 ###########################################################
@@ -1050,8 +1162,11 @@ def readInTaxon(taxonIdFile):
 # print_papers_from_TaxonID_list
 ###########################################################
 def print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annots2_dict,  outpath, papers, oneFile=True, top=20):
-    """Take in a list of taxon IDs and then print out the top 'top' of the papers that annotate that species"""
+    """Take in a list of taxon IDs and then print out the top 'top' of the papers that annotate that species. Sorted on num
+    annotations. """
     taxonID_list = readInTaxon(taxonIDFile)
+    print papers_annots2_dict
+    print len(papers_annots2_dict)
     if os.path.exists(outpath):
         os.remove(outpath)
     for taxon in taxonID_list:
@@ -1068,7 +1183,7 @@ def print_papers_from_TaxonID_list(taxonIDFile,  pmidTaxonIDs_dict, papers_annot
 ###########################################################
 def print_papers_for_one_taxonID(taxonID,  pmidTaxonIDs_dict, papers_annots2_dict, outpath, papers, top=20):            
     """Print out what Taxon IDs are annotated by a paper and how many times it annotates this species. Print out only 
-    the top 'top'. Also print out the related information about the paper.
+    the top 'top'. Also print out the related information about the paper. Output sorted on num annotations.
     
     NOTE BUG HERE! NOT COUNTING PROTEINS CORRECTLY!!!!!!!!!!!!!!
     
@@ -1085,7 +1200,9 @@ def print_papers_for_one_taxonID(taxonID,  pmidTaxonIDs_dict, papers_annots2_dic
     for sortedEntry in sortedPMIDPerTaxon_tuple[0:top]:
         out_list.append(str(sortedEntry.numProts))  #[0]
         out_list.append(str(sortedEntry.PMID)) # will be [2]
+        print sortedEntry.PMID
         if sortedEntry.PMID in papers_annots2_dict:
+            print "here"
             out_list.extend((papers_annots2_dict[sortedEntry.PMID][1:])) #add title, year & journal [3, 4, 5]
         else:
             """Entrez.email = MY_EMAIL

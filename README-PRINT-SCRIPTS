@@ -6,6 +6,15 @@
 ##########################################################################
 
 ##########################################################################
+# print_and_pickle_all_ncbi_paper_info.py
+##########################################################################
+OUTPUT:
+1) dict holding all the title/journal/date info for each PMID from NCBI:
+ncbi_paper_dict
+2) a pickle of this exact same data: ncbi_paper_info.pik
+
+
+##########################################################################
 # print_CountExpEvCodesAllGOA.py
 ##########################################################################
 OUTPUT: allECCodeCount.<date>.tsv
@@ -17,12 +26,6 @@ This file lists the count of evidence codes for experimental annotations in GOA.
 OUTPUT: allECCodeCount-LO.<date>.tsv
 This file lists the count of evidence codes for experimental annotations in GOA.
 This code uses only the 'leaves only' pickle of experimental annotations in GOA.
-
-
-
-
-
-
 
 
 
@@ -63,6 +66,14 @@ saving us from unnecessarily recalculating it. Need to adjust code depending
 on if you are loading this pickle or creating one.
 
 LOG_FILE: LOG_ListPapersThatAnnotateMostProtsLO.log
+
+
+##########################################################################
+# print_TotalAnnotations&ProteinsPerTaxonID.py
+##########################################################################
+OUTPUT: countTaxonIDAnnots&Prots.<date>.tsv
+This file lists the total experimentally annotated proteins and annotations for 
+each species in GOA. This script DOES NOT double count the proteins.
 
 
 
