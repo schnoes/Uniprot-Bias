@@ -8,7 +8,8 @@ import sys
 # python ./print_UniProtIDsPerPaper.py > UniProtIDsPerPaper.log 2>&1 
 
 d = datetime.date.today()
-finalOutputFile = "uniProtIDsPerPaper." + str(d) + ".tsv"
+finalOutputFile = "FastaFiles/uniProtIDsPerPaper." + str(d) + ".tsv"
+dbFile = "swissprot_cdhit/allUniprot.fasta"
 
 
 #load up the pre-pickled data
@@ -17,15 +18,19 @@ papersExp_handle = open('Uniprot-Bias/goa_exp_papers.pik', 'rb')
 papersExp_dict = cPickle.load(papersExp_handle)
 papers_protsExp_handle = open('Uniprot-Bias/goa_exp_papers_prots.pik', 'rb')
 papers_protsExp_dict = cPickle.load(papers_protsExp_handle)
+ncbi_paper_handle = open('Uniprot-Bias/ncbi_paper_info.pik')
+ncbi_paper_dict = cPickle.load(ncbi_paper_handle)
+
+
 #all_tt_count_handle = open("Uniprot-Bias/all_tt_count.pik", 'rb')
 #all_tt_count = cPickle.load(all_tt_count_handle)
 
 # going for the list of papers That annotate most proteins. Top designates how far down the list we go
 top = 50
-print "top_papers_dict: Get all the PMID info for the top papers"
-print clock()
-sys.stdout.flush()
-papers_annots2_dict = sp_tools.top_papers_dict(papersExp_dict, papers_protsExp_dict, top=top)
+#print "top_papers_dict: Get all the PMID info for the top papers"
+#print clock()
+#sys.stdout.flush()
+#papers_annots2_dict = sp_tools.top_papers_dict(papersExp_dict, papers_protsExp_dict, top=top)
 
 #print "term_types_all_papers: Count up all the terms types for each paper"
 #print clock()
@@ -55,7 +60,7 @@ sortedProtsPerPaper_tuple = sp_tools.sort_papers_prots(papers_protsExp_dict)
 print "print_paper_per_prots: print out the results of the the top papers per proteins. Final Ouptfile: uniProtIDsPerPaper.<date>.tsv"
 print clock()
 sys.stdout.flush()
-sp_tools.print_uniprot_id_per_pmid(papers_annots2_dict, papersExp_dict, sortedProtsPerPaper_tuple, outpath=finalOutputFile, top=top)
+sp_tools.print_uniprot_id_fasta_attributes_per_pmid(ncbi_paper_dict, papersExp_dict, sortedProtsPerPaper_tuple, dbpath=dbFile, outpath=finalOutputFile, top=top)
 
 print "all done"
 print clock()

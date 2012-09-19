@@ -11,12 +11,16 @@ import os.path
 import os
 import cPickle
 import datetime
+import urllib, urllib2
+import subprocess
 
 # edits: AMS Jan 4, 2012
 
 #edit IF 2/17/2012
 # Set of GO experimental evidence codes
 EEC = set(['EXP','IDA','IPI','IMP','IGI','IEP'])
+#Set of GO experimental evidence codes for CAFA work
+EEC_CAFA = set(['EXP','IDA','IPI','IMP','IGI','IEP', 'TAS', 'IC'])
 
 #Email address used for NCBI efetch tools
 MY_EMAIL = 'schnoes@gmail.com'
@@ -77,6 +81,40 @@ def exp_in_papers(papers,papers_prots):
                     exp_papers_prots[p].get(go_rec['sp_id'],0)+1
                 
     return exp_papers, exp_papers_prots
+
+def print_PFAM_GOAs_CAFA(uniprotGOA_dict, pfam_path, outpath):
+    """Read in a list of uniprot IDS from a PFAM domain and see what GOA annotations there are"""
+    go_con = mysqlConnect()
+    go_cur = go_con.cursor()
+    outFile = open(outpath, "w")
+    
+    pfamFile = open(pfam_path, 'r')
+    annotation_dict = {}
+    for line in pfamFile.readlines():
+        uniprotID = line.rstrip()
+        if uniprotID in uniprotGOA_dict:
+            goa_list = uniprotGOA_dict[uniprotID]
+            for annot in goa_list:
+                annotation_dict[annot] = annotation_dict.get(0) + 1
+    
+    for go_id, numUses in annotation_dict.iteritems():
+        try:
+            name = gu.go_acc_to_name(go_id,go_cur)
+        except IndexError: #sometimes the GO ID given is actually a synonym
+            try:
+                name = gu.go_acc_to_synonym_name(go_id, go_cur)
+            except IndexError: #sometimes it just doesn't work
+                print "problem with GO ID", go_id, ", uniprot ID ", uniprotID, ", and PMID ", pmid
+                name = ''
+        out_list = [go_id, name, numUses]
+        outString = "\t".join(out_list)
+        outFile.write(outString + "\n")
+                     
+    outFile.close()                
+    pfamFile.close()
+
+    
+
 
 def not_exp_in_papers(papers,papers_prots):
     # Annotations with no experimental evidence codes
@@ -265,9 +303,9 @@ def go_terms_with_ec_per_paper(papers,outpath=None,top=20):
     return go_ec_count
 
 ###########################################################
-# print_uniprot_id_per_pmid
+# print_uniprot_id_per_pmid_web
 ###########################################################
-def print_uniprot_id_per_pmid(papers_annots2_dict, papers, sortedProtsPerPaper_tuple, outpath, top=20):
+def print_uniprot_id_and_fasta_per_pmid_web(papers_annots2_dict, papers, sortedProtsPerPaper_tuple, outpath, top=20):
     """Prints out the uniprot IDs and some paper information for each paper.
     papers_annots2_dict: dict of the top X papers, with title, year and journal name
     all_tt_count: this is a dict that gives how many term types each paper annotates
@@ -279,20 +317,28 @@ def print_uniprot_id_per_pmid(papers_annots2_dict, papers, sortedProtsPerPaper_t
     """
     outFile = open(outpath, 'w')
     #print out header line
-    outFile.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % 
-                  ('Num Prots', 'Num Annots', 'PMID', 'Title', 'Year', 'Journal', 'Uniprot IDs'))
+    outFile.write("%s\t%s\t%s\t%s\t%s\t%s\n" % 
+                  ('Num Prots', 'Num Annots', 'PMID', 'Title', 'Year', 'Journal'))
     out_list = []
+    uniprot_list = []
     type_list = ['molecular_function', 'biological_process', 'cellular_component']
     for sortedPaper in sortedProtsPerPaper_tuple[0:top]:
+        outFile = open(outpath + "." + str(sortedPaper.PMID), 'w')
+        #print out header line
+        outFile.write("%s\t%s\t%s\t%s\t%s\t%s\n" % 
+                  ('Num Prots', 'Num Annots', 'PMID', 'Title', 'Year', 'Journal'))
         # add the number of proteins & the PMID
         out_list.append(str(sortedPaper.numProts)) #[0]
         out_list.append(str(sortedPaper.PMID)) # will be [2]
         # get paper info
         out_list.extend(papers_annots2_dict[sortedPaper.PMID][1:]) #add title, year & journal [3, 4, 5]
         out_list.insert(1, str(papers_annots2_dict[sortedPaper.PMID][0])) # add number of annotations, [1]
-        for sortedPaper, uniprotDict_list in papers.iteritems():
-            for uniprot_dict in uniprotDict_list:
-                out_list.append(uniprot_dict['sp_id'])
+        
+        uniprotDict_list = papers[sortedPaper.PMID]
+        for uniprot_dict in uniprotDict_list:
+            if uniprot_dict['sp_id'][10:] not in uniprot_list:
+                uniprot_list.append(uniprot_dict['sp_id'][10:])
+        
         
         """
         # get GO type info, [6, 7, 8]
@@ -315,9 +361,432 @@ def print_uniprot_id_per_pmid(papers_annots2_dict, papers, sortedProtsPerPaper_t
         """
         outFile.write('\t'.join((out_list)))
         outFile.write('\n')
-        out_list = []
+        for id in uniprot_list:
+            outFile.write(str(id))
+            outFile.write('\n')
         
-    outFile.close()  
+        #http://www.uniprot.org/uniprot/?query=id:P00331+OR+id:P00359&format=fasta
+        #http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprot/P00331+OR+P00359/fasta
+    
+        fastaFile = open(outpath + "." + str(sortedPaper.PMID) + ".fasta", 'w')
+        #batchSize = 25
+        #totalCount = len(uniprot_list)
+        #for start in range(0,totalCount, batchSize):
+        for id in uniprot_list:
+            print id
+        #    end = min(totalCount, start+batchSize)
+            #print start
+            #print end
+            #print totalCount
+            #batch_list = uniprot_list[start:end]
+            #query = "+OR+".join((batch_list))
+            #print query
+            #query = "+OR+id:".join(str(batch_list))
+            dbName = 'uniprot'
+            format = "fasta"
+            # Construct URL
+            baseUrl = 'http://www.ebi.ac.uk/Tools/dbfetch/dbfetch'
+            #baseUrl = 'http://www.uniprot.org/uniprot/?'
+            #url = baseUrl + '/' + dbName + '/' + query + '/' + format
+            url = baseUrl + '/' + dbName + '/' + id + '/' + format
+            #url = baseUrl + 'query=id:' + query + '&format' + format 
+            # Get the entry
+            url_handle = urllib2.urlopen(url)
+            result = url_handle.read()
+            url_handle.close()
+
+            # Print the entry
+            fastaFile.write(result)
+
+        out_list = []
+        uniprot_list = []
+        outFile.close()
+        fastaFile.close()  
+    
+    return
+
+
+
+###########################################################
+# run_cd_hit_2d
+###########################################################
+def run_cd_hit_2d(pmidListFilePath, fastaFilePath, outpath, percentID):
+    """Run cd-hit-2d on the fasta files derived from two different papers."""
+    pmidListFile = open(pmidListFilePath, "r")
+    pmid_list = []
+    for line in pmidListFile.readlines():
+        line = line.strip()
+        pmid_list.append(line)
+    pmidListFile.close()
+    count = 1
+    for id in pmid_list:
+        compare_list = pmid_list[count:]
+        file1 = fastaFilePath + "." + id + ".fasta"
+        for comp in compare_list:
+            file2 = fastaFilePath + "." + comp + ".fasta"
+            print file1
+            print file2
+            outFile = outpath + "." + id + "vs." + comp +"." + str(percentID) + ".txt"
+            print outFile
+            cmd = "cd-hit-2d -i %s -i2 %s -o %s -c %f -d 0"% (file1, file2, outFile, percentID)
+            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = process.communicate()
+            #outFile.write(out)
+            logFile = outpath + "." + id + "vs." + comp +"." + str(percentID) + ".log"
+            logFileHandle = open(logFile, 'w')
+            logFileHandle.write(out)
+            logFileHandle.close()
+            if err is "":
+                pass
+            else:
+                print id + "--" + comp + "--" + err
+            
+        count = count + 1
+        
+ 
+###########################################################
+# run_cd_hit
+###########################################################
+def run_cd_hit(pmidListFilePath, fastaFilePath, outpath, finalSifFilePath, percentID, sifFile):
+    """Run cd-hit on the fasta files derived from two different papers."""
+    pmidListFile = open(pmidListFilePath, "r")
+    pmid_list = []
+    for line in pmidListFile.readlines():
+        line = line.strip()
+        pmid_list.append(line)
+    pmidListFile.close()
+    print pmid_list
+    networkFile = open(finalSifFilePath + "." + "all.sif", "w")
+    # Write out the info to the a Cytoscape Sif file.
+    idSifFile = open(sifFile, "r")
+    bigString = idSifFile.read()
+    #print bigString
+    networkFile.write(bigString)
+    
+    count = 1
+    for id in pmid_list:
+        compare_list = pmid_list[count:]
+        print compare_list
+        file1 = fastaFilePath + "." + id + ".fasta"
+        # do the comparison
+        for comp in compare_list:
+            file2 = fastaFilePath + "." + comp + ".fasta"
+            #print file1
+            #print file2
+            outFile = outpath + "." + id + "vs." + comp +"." + str(percentID) + ".txt"
+            combinedFasta = outpath + "." + id + "vs." + comp +"." + str(percentID) + "all.fasta"
+            cmd = "cat %s %s > %s" %(file1, file2, combinedFasta)
+            print file1
+            print file2
+            print combinedFasta
+            process = subprocess.Popen(cmd, shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = process.communicate()
+            print out
+            print err
+            
+            #print outFile
+            cmd = "cd-hit -i %s -o %s -c %f -d 0 -g 1"% (combinedFasta, outFile, percentID)
+            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = process.communicate()
+            #outFile.write(out)
+            logFile = outpath + "." + id + "vs." + comp +"." + str(percentID) + ".log"
+            logFileHandle = open(logFile, 'w')
+            logFileHandle.write(out)
+            logFileHandle.close()
+            if err is "":
+                pass
+            else:
+                print id + "--" + comp + "--" + err
+            outHandle = open(outFile + '.clstr', "r")
+            #discard first line
+            line = outHandle.readline()
+            clustr_list = []
+            while line:
+                print line
+                if line.startswith(">"):
+                    if len(clustr_list) > 1:
+                        for index, entry in enumerate(clustr_list):
+                            #print index
+                            #print entry
+                            #print clustr_list
+                            tmp_list = clustr_list[index+1:]
+                            for pm, ID in tmp_list:
+                                if entry[0] == pm:
+                                    print str(entry[1]) +" ps " + str(ID) + "\n"
+                                    networkFile.write(str(entry[1]) +" ps " + str(ID) + "\n")
+                                else:
+                                    print str(entry[1]) +" ss " + str(ID) + "\n"
+                                    networkFile.write(str(entry[1]) +" ss " + str(ID) + "\n")
+                                    #networkFile.write(str(entry[1]) +" ss " + str(id) + "\n")
+                    clustr_list = []                        
+                else:
+                    line_list = line.split(',') 
+                    id_list = line_list[1].split('|') #ID in second list entry, split out the id from the other stuff
+                    protID = id_list[0][2:] + "|" + id_list[1] # >18029348|E9PEB9|E9PEB9_HUMAN... * (includes a space before >)
+                    #print protID
+                    pmid = id_list[0][2:]
+                    clustr_list.append([pmid,protID])
+                    print clustr_list
+               
+                line = outHandle.readline()  
+        count = count + 1
+        
+    networkFile.close()
+        
+###########################################################
+# run_cd_hit
+###########################################################
+def run_all_cd_hit( allFastaFilePath, attrOutFilePath, outpath, finalSifFilePath, percentID):
+    """Assume here that all sequences from all the papers in a species are in one file to be processsed by cd-hit.
+    This needs slightly different output processing than the run_cd_hit function.
+    """
+    
+    networkFile = open(finalSifFilePath + "." + "alltogether.sif", "w")
+    #print outFile
+    cmd = "cd-hit -i %s -o %s -c %f -d 0 -g 1"% (allFastaFilePath, outpath, percentID)
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    #outFile.write(out)
+    logFile = outpath + ".alltogether." + str(percentID) + ".log"
+    logFileHandle = open(logFile, 'w')
+    logFileHandle.write(out)
+    logFileHandle.close()
+    if err is "":
+        pass
+    else:
+        print err
+        
+    # Write out the info to the a Cytoscape Sif file.
+    outHandle = open(outpath + '.clstr', "r")
+    #discard first line
+    line = outHandle.readline()
+    line = outHandle.readline()
+    clustr_dict = {}
+    protIDs_list = []
+    pmidIDs_list = []
+    while line:
+        if line.startswith(">"):
+            id = "-".join(protIDs_list)
+            size = len(protIDs_list)
+            clustr_dict[(id, size)] = pmidIDs_list
+            protIDs_list = []
+            pmidIDs_list = []
+        else:
+            line_list = line.split(',') 
+            id_list = line_list[1].split('|') #ID in second list entry, split out the id from the other stuff
+            protID = id_list[1] # >18029348|E9PEB9|E9PEB9_HUMAN... * (includes a space before >)
+            #print protID
+            pmid = id_list[0][2:]
+            if protID not in protIDs_list:
+                protIDs_list.append(protID)
+            if pmid not in pmidIDs_list:
+                pmidIDs_list.append(pmid)
+            #print pmidIDs_list
+               
+        line = outHandle.readline()  
+    
+    #print clustr_dict
+    attrFile = open(attrOutFilePath, "w")
+    attrFile.write("ID\tType\tNumProt\n")
+    for id_size_tup, pmid_list in clustr_dict.iteritems():
+        print id_size_tup
+        print pmid_list
+        attrFile.write(id_size_tup[0] + "\tProtein\t" + str(id_size_tup[1]) + "\n")
+        #print pmid_list
+        for pmid in pmid_list:
+            networkFile.write(str(id_size_tup[0]) +" sp " + str(pmid) + "\n")
+            attrFile.write(pmid + "\tPaper\n")
+
+        
+    networkFile.close()
+    attrFile.close()
+        
+
+   
+###########################################################
+# print_uniprot_id_per_pmid
+###########################################################
+def print_uniprot_id_fasta_attributes_per_pmid(papers_annots2_dict, papers, sortedProtsPerPaper_tuple, dbpath, outpath, top=20):
+    """Prints out the uniprot IDs and some paper information for each paper. Also the associated fasta file and a cytoscape 
+    attribute file that connects the uniprot IDs to the paper it is from.
+    papers_annots2_dict: dict of the top X papers, with title, year and journal name
+    all_tt_count: this is a dict that gives how many term types each paper annotates
+    go_ec_count: this is a dict that gives how many times a paper gives a specific (go ID, go Name, Ev code) annotation
+    allEvCodes_dict: this is a dict that gives how many times a paper supports a given experimental ev Code (EEC global).
+    sortedProtsPerPaper_tuple: this is a sorted named tuple (largest first) of all the papers, sorted by the number of proteins the paper annotates
+    outpath: where the data will be printed out.
+    top: the number of papers we want to print out. Sorted by the number of proteins the paper annotates.
+    """
+    outFile = open(outpath, 'w')
+    #print out header line
+    outFile.write("%s\t%s\t%s\t%s\t%s\t%s\n" % 
+                  ('Num Prots', 'Num Annots', 'PMID', 'Title', 'Year', 'Journal'))
+    out_list = []
+    uniprot_list = []
+    type_list = ['molecular_function', 'biological_process', 'cellular_component']
+    for sortedPaper in sortedProtsPerPaper_tuple[0:top]:
+        outFile = open(outpath + "." + str(sortedPaper.PMID), 'w')
+        #print out header line
+        outFile.write("%s\t%s\t%s\t%s\t%s\t%s\n" % 
+                  ('Num Prots', 'Num Annots', 'PMID', 'Title', 'Year', 'Journal'))
+        # add the number of proteins & the PMID
+        out_list.append(str(sortedPaper.numProts)) #[0]
+        out_list.append(str(sortedPaper.PMID)) # will be [2]
+        # get paper info
+        out_list.extend(papers_annots2_dict[sortedPaper.PMID][1:]) #add title, year & journal [3, 4, 5]
+        out_list.insert(1, str(papers_annots2_dict[sortedPaper.PMID][0])) # add number of annotations, [1]
+        
+        uniprotDict_list = papers[sortedPaper.PMID]
+        for uniprot_dict in uniprotDict_list:
+            if uniprot_dict['sp_id'][10:] not in uniprot_list:
+                uniprot_list.append(uniprot_dict['sp_id'][10:])
+        
+        outFile.write('\t'.join((out_list)))
+        outFile.write('\n')
+        for id in uniprot_list:
+            outFile.write(str(id))
+            outFile.write('\n')
+        
+    
+        fastaFile = open(outpath + "." + str(sortedPaper.PMID) + ".fasta", 'w')
+        attributeFile = open(outpath + "." + str(sortedPaper.PMID) + ".attr", 'w')
+        attributeFile.write("ID\tPMID\n")
+        for id in uniprot_list:
+            #print id
+            #print out the Fasta info
+            cmd = "fastacmd -d %s -s %s"%(dbpath, id)
+            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = process.communicate()
+            if out.find('>sp') != -1:
+                updated_out = out.replace(">sp", ">" + str(sortedPaper.PMID))
+                #print "SP"
+            elif out.find(">tr") != -1:
+                updated_out = out.replace(">tr", ">" + str(sortedPaper.PMID))
+                #print "TR"
+            else:
+                print "problem with out string. For id: " + id + " PMID: " + str(sortedPaper.PMID) 
+                updated_out = out
+            fastaFile.write(updated_out)
+            #print out
+            if err is "":
+                pass
+            else:
+                print str(sortedPaper.PMID) + "--" + err
+            #print out the attribute info
+            attributeFile.write(str(sortedPaper.PMID) + "|" + str(id) + "\t" + str(sortedPaper.PMID) + "\n")    
+            
+        #make the PMID network file
+        sifFile = open(outpath + "." + str(sortedPaper.PMID) + ".sif", 'w')
+        for index, id in enumerate(uniprot_list):
+            if index == 0:
+                next_id = uniprot_list[-1]
+                sifFile.write(str(sortedPaper.PMID) + "|" + str(id) +" sp " + str(sortedPaper.PMID) + "|" + str(next_id) + "\n")
+            if (index + 1) < len(uniprot_list):
+                next_id = uniprot_list[index+1]
+                sifFile.write(str(sortedPaper.PMID) + "|" + str(id) +" sp " + str(sortedPaper.PMID) + "|" + str(next_id) + "\n")
+                             
+        out_list = []
+        uniprot_list = []
+        outFile.close()
+        fastaFile.close()  
+        attributeFile.close()
+        sifFile.close()
+    
+    return
+    
+
+
+
+
+###########################################################
+# print_uniprot_id_per_pmid
+###########################################################
+def print_uniprot_id_and_fasta_per_pmid(papers_annots2_dict, papers, sortedProtsPerPaper_tuple, dbpath, outpath, top=20):
+    """Prints out the uniprot IDs and some paper information for each paper.
+    papers_annots2_dict: dict of the top X papers, with title, year and journal name
+    all_tt_count: this is a dict that gives how many term types each paper annotates
+    go_ec_count: this is a dict that gives how many times a paper gives a specific (go ID, go Name, Ev code) annotation
+    allEvCodes_dict: this is a dict that gives how many times a paper supports a given experimental ev Code (EEC global).
+    sortedProtsPerPaper_tuple: this is a sorted named tuple (largest first) of all the papers, sorted by the number of proteins the paper annotates
+    outpath: where the data will be printed out.
+    top: the number of papers we want to print out. Sorted by the number of proteins the paper annotates.
+    """
+    outFile = open(outpath, 'w')
+    #print out header line
+    outFile.write("%s\t%s\t%s\t%s\t%s\t%s\n" % 
+                  ('Num Prots', 'Num Annots', 'PMID', 'Title', 'Year', 'Journal'))
+    out_list = []
+    uniprot_list = []
+    type_list = ['molecular_function', 'biological_process', 'cellular_component']
+    for sortedPaper in sortedProtsPerPaper_tuple[0:top]:
+        outFile = open(outpath + "." + str(sortedPaper.PMID), 'w')
+        #print out header line
+        outFile.write("%s\t%s\t%s\t%s\t%s\t%s\n" % 
+                  ('Num Prots', 'Num Annots', 'PMID', 'Title', 'Year', 'Journal'))
+        # add the number of proteins & the PMID
+        out_list.append(str(sortedPaper.numProts)) #[0]
+        out_list.append(str(sortedPaper.PMID)) # will be [2]
+        # get paper info
+        out_list.extend(papers_annots2_dict[sortedPaper.PMID][1:]) #add title, year & journal [3, 4, 5]
+        out_list.insert(1, str(papers_annots2_dict[sortedPaper.PMID][0])) # add number of annotations, [1]
+        
+        uniprotDict_list = papers[sortedPaper.PMID]
+        for uniprot_dict in uniprotDict_list:
+            if uniprot_dict['sp_id'][10:] not in uniprot_list:
+                uniprot_list.append(uniprot_dict['sp_id'][10:])
+        
+        
+        """
+        # get GO type info, [6, 7, 8]
+        for t in type_list:
+            try:
+                out_list.append(str(all_tt_count[sortedPaper.PMID][t]))
+            except:
+                out_list.append('0')
+        #get ev code data [9, 10, 11, 12, 13, 14]
+        for ec in sorted(EEC):
+            try:
+                out_list.append(str(allEvCodes_dict[(sortedPaper.PMID, ec)]))
+            except:
+                out_list.append('0')
+        # get GO ID info
+        goInfo_dict = go_ec_count[sortedPaper.PMID]
+        for key, value in goInfo_dict.iteritems(): # [15, 16, 17, 18....]
+            out_list.extend(list(key))
+            out_list.append(str(value))
+        """
+        outFile.write('\t'.join((out_list)))
+        outFile.write('\n')
+        for id in uniprot_list:
+            outFile.write(str(id))
+            outFile.write('\n')
+        
+        #http://www.uniprot.org/uniprot/?query=id:P00331+OR+id:P00359&format=fasta
+        #http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprot/P00331+OR+P00359/fasta
+    
+        fastaFile = open(outpath + "." + str(sortedPaper.PMID) + ".fasta", 'w')
+        #batchSize = 25
+        #totalCount = len(uniprot_list)
+        #for start in range(0,totalCount, batchSize):
+        for id in uniprot_list:
+            #print id
+            cmd = "fastacmd -d %s -s %s"%(dbpath, id)
+            
+            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = process.communicate()
+            fastaFile.write(out)
+            #print out
+            if err is "":
+                pass
+            else:
+                
+                print str(sortedPaper.PMID) + "--" + err
+            
+        out_list = []
+        uniprot_list = []
+        outFile.close()
+        fastaFile.close()  
+    
     return
     
 ###########################################################
@@ -662,28 +1131,29 @@ def all_NCBI_paper_info_dict(papers, papers_prots, outpath=None,delim="\t", top=
     else:
         negTop = -top
     idlist = [p[1] for p in papers_annots[negTop:]]
-    print idlist
+    #print idlist
     #print str(len(idlist))
     Entrez.email = MY_EMAIL
     
-    batchSize = 499
+    batchSize = 500
     totalCount = len(idlist)
     
     
     for start in range(0,totalCount, batchSize):
         end = min(totalCount, start+batchSize)
-        print start
-        print end
-        print totalCount
+        #print start
+        #print end
+        #print totalCount
         batch_list = idlist[start:end]
-        print batch_list
+        #print batch_list
         h = Entrez.efetch(db="pubmed", id=batch_list, 
                           rettype="medline", retmode="text")
         medrecs = list(Medline.parse(h))
         titles = [medrec.get("TI","?") for medrec in medrecs]
         years = [medrec.get("DP","?") for medrec in medrecs]
         journals = [medrec.get("JT", "?") for medrec in medrecs]
-        for p, title, year, journal in zip(papers_annots[negTop:], titles,years, journals):
+        #remove negtop, just use papers annots, start end....
+        for p, title, year, journal in zip(papers_annots[start:end], titles,years, journals):
         #papers_annots2_dict[PMID] = [# of total annotations, Title, Year, Journal] 
             ncbi_paper_dict[p[1]] = [len(papers[p[1]]), title, year.split()[0].strip(), journal]
             #print ncbi_paper_dict
@@ -694,8 +1164,8 @@ def all_NCBI_paper_info_dict(papers, papers_prots, outpath=None,delim="\t", top=
             print >> fout, "%d\t%s\t%s\t%s\t%s" % p
             fout.close()
             """
-    print "dict size is: " + str( len(ncbi_paper_dict))  
-    print ncbi_paper_dict     
+    #print "dict size is: " + str( len(ncbi_paper_dict))  
+    #print ncbi_paper_dict     
     return ncbi_paper_dict
 
 
@@ -900,6 +1370,61 @@ def go_in_papers_goa(goa_path):
         printDict(papers, 'papers.txt')
         printDict(papers_prots, 'papers_prots.txt')
     return papers, papers_prots
+
+def go_in_papers_goa_CAFA(goa_path):
+    """Extract the GO data from the Uniprot GOA download. 
+       For the CAFA work, don't care if there is a PMID reference. 
+       Only care the kind of evidence code."""
+    uniprotGOA_dict = {}
+    papers = {}
+    papers_prots = {}
+    for inline in file(goa_path):
+        if inline[0] == '!': continue
+        db, db_object_id, db_object_symbol, qualifier, go_id, \
+        db_reference, evidence, withit, aspect, \
+        db_object_name, synonym, db_object_type, \
+        taxon_id, date, assigned_by, \
+        annotation_extension, gene_product_form_id = inline.rstrip('\n').split('\t')
+        key_id = "%s:%s" % (db, db_object_id)
+
+        #if db_reference[:4] != "PMID": # only take the PMIDs, don't care about anything else
+        #    continue
+        #Want all entries
+        if evidence not in EEC_CAFA: #only want entries with specific evidence codes
+            #print inline
+            continue
+        synonym_list = synonym.split('|')
+        uniprotID = synonym_list[0]
+        
+        #paper = db_reference.split(':')[1] # Paper = the PMID
+        #if paper not in papers_prots:
+            #papers_prots holds how many proteins each paper annotates
+            #papers_prots[PMID] = {{key=Uniprot ID(key_id), value=# of times this paper annotates this protein}}
+            #it is possible for one paper to produce more than one GO annotation for the same protien
+            #Example: Unpript ID = Q9H1C4 and PMID = 19006693 
+        #    papers_prots[paper] = {key_id: 1}
+        #else:
+        #    papers_prots[paper][key_id] = \
+        #         papers_prots[paper].get(key_id,0)+1
+    
+        #Papers[PMID] = [a list of dicts: each dict containing 3 entries: swissProt ID entry (key='sp_id'), 
+        # go_id entry (key = 'go_id'), GO evidence code (key = 'go_ec')]
+        if uniprotID not in uniprotGOA_dict:
+            uniprotGOA_dict[uniprotID] = [go_id, evidence]
+        else:
+            temp_list = uniprotGOA_dict[uniprotID]
+            temp_list.append(go_id)
+            uniprotGOA_dict[uniprotID] = temp_list
+        
+        #d1 = dict(sp_id=key_id,
+        #          go_id=go_id,
+        #          go_ec=evidence)
+        #papers.setdefault(paper,[]).append(d1)
+        
+        #printDict(papers, 'papers.txt')
+        #printDict(papers_prots, 'papers_prots.txt')
+        #print uniprotGOA_dict
+    return uniprotGOA_dict
         
 ###########################################################
 # go_tax_in_papers_goa
@@ -1306,3 +1831,237 @@ def redundant_annotations(go_papers_dict):
             
 
     return ancestors_found, to_remove,gpd_leaves_only
+
+###########################################################
+# parse_sif_file_for_ident_seqs
+###########################################################
+def parse_sif_file_for_ident_seqs(inputFile):
+    """Produce a list of dicts that has the PMID and Uniprot ID for identical sequences."""
+    inFile = open(inputFile, "r")
+    
+    idPMIDid_dict = {}
+    identityID = 1
+    line = inFile.readline()  
+    while line:       
+        if "ss" in line:
+            
+            line.strip()
+            line = line[:-1]
+            line_list = line.split(" ")
+            #print "line: " + line
+            
+            id1_list = line_list[0].split("|")
+            PMID_1 = id1_list[0]
+            uniprotID_1= id1_list[1]
+            #print uniprotID_1
+            
+            id2_list = line_list[2].split("|")
+            PMID_2 = id2_list[0]
+            uniprotID_2 = id2_list[1]
+            #print uniprotID_2
+            #idPMIDid_dice[uniprot ID] = [[PMID 1, PMID 2,...], identity ID]
+            if (uniprotID_1 in idPMIDid_dict) and (uniprotID_2 in idPMIDid_dict):
+                #print "Both in"
+                if PMID_1 not in idPMIDid_dict[uniprotID_1][0]:
+                    idPMIDid_dict[uniprotID_1][0].append(PMID_1)
+                if PMID_2 not in idPMIDid_dict[uniprotID_2][0]:
+                    idPMIDid_dict[uniprotID_2][0].append(PMID_2)
+                
+            elif ((uniprotID_1 in idPMIDid_dict) and (uniprotID_2 not in idPMIDid_dict)):
+                #print "Not ID2"
+                if PMID_1 not in idPMIDid_dict[uniprotID_1][0]:
+                    idPMIDid_dict[uniprotID_1][0].append(PMID_1)
+                idPMIDid_dict[uniprotID_2] = [[PMID_2], idPMIDid_dict[uniprotID_1][1]]
+            
+            elif ((uniprotID_1 not in idPMIDid_dict) and (uniprotID_2  in idPMIDid_dict)):
+                #print "Not ID1"
+                idPMIDid_dict[uniprotID_1] = [[PMID_1], idPMIDid_dict[uniprotID_2][1]]
+                if PMID_2 not in idPMIDid_dict[uniprotID_2][0]:
+                    idPMIDid_dict[uniprotID_2][0].append(PMID_2)
+
+            else:  
+                #print "First time"  
+                if uniprotID_1 == uniprotID_2:
+                    idPMIDid_dict[uniprotID_1] = [[PMID_1, PMID_2], identityID]
+                else:
+                    idPMIDid_dict[uniprotID_1] = [[PMID_1], identityID]
+                    idPMIDid_dict[uniprotID_2] = [[PMID_2], identityID]
+                #print idPMIDid_dict[uniprotID_1]
+                #print idPMIDid_dict[uniprotID_2]
+                identityID += 1
+                            
+        else:
+            pass
+               
+        line = inFile.readline()  
+    
+    relationship_dict = {}
+    #relationship_dict[identity ID] = [[uniprot Id, pmid_list],...]
+    for uniprotID, identity_list in idPMIDid_dict.iteritems():
+        idID = identity_list[1]
+        pmid_list = identity_list[0]
+        if idID in relationship_dict:
+            relationship_dict[idID].append([uniprotID, pmid_list])
+        else:
+            relationship_dict[idID] = [[uniprotID, pmid_list]]
+    
+    #print relationship_dict
+    return relationship_dict
+    
+###########################################################
+# print_go_terms_and_text_for_sim_seqs
+###########################################################
+def print_go_terms_and_text_for_sim_seqs(relationship_dict, papers, outFile):
+    """print out the go terms and related text for identified similar sequences"""
+    
+    outF = open(outFile, 'w')
+    go_con = mysqlConnect()
+    go_cur = go_con.cursor()
+    hold_list = []
+    relList_dict = {}
+    #print relationship_dict
+    for idID, rel_list in relationship_dict.iteritems():
+        #outF.write("idID\n")
+        #outF.write(str( idID) + "\n")
+        #outF.write(str(rel_list) + "\n")
+        #print rel_list
+        #for idID, rel_list in relationship_dict:
+        firstTime = True
+        theSameAnnot = True
+        holdGOID = ''
+        for pair in rel_list:
+            #rel_list example: [['Q8L3S7', ['14671022']], ['Q9SVZ3', ['17151019']]]
+            #rel_list example #2: [['Q0WPA5', ['16618929', '16287169']]]
+            #outF.write("Relationship \n")
+            #outF.write(str(pair) + "\n")
+            uniprotID = pair[0]
+            pmid_list = pair[1]
+            #outF.write("pmid_list \n")
+            #outF.write(str(pmid_list) + "\n")
+
+            #print uniprotID
+            #print pmid_list
+            for pmid in pmid_list:
+                prot_list = papers[pmid]
+                #print rec_list//-+
+                
+                for prot in prot_list:
+                    #print prot['sp_id']
+                    if prot['sp_id'] == ("UniProtKB:" + str(uniprotID)):
+                        #outF.write("in prot If ")
+                        #outF.write(str(uniprotID + "\n"))
+                        go_id = prot['go_id']
+                        if firstTime == True:
+                            holdGOID = go_id
+                            firstTime = False
+                        else:
+                            if go_id == holdGOID:
+                                pass
+                            else:
+                                theSameAnnot = False
+                            
+                        try:
+                            name = gu.go_acc_to_name(go_id,go_cur)
+                        except IndexError: #sometimes the GO ID given is actually a synonym
+                            try:
+                                name = gu.go_acc_to_synonym_name(go_id, go_cur)
+                            except IndexError: #sometimes it just doesn't work
+                                print "problem with GO ID", go_id, ", uniprot ID ", uniprotID, ", and PMID ", pmid
+                                name = ''
+                        try:
+                            ontology = gu.go_acc_to_term_type(go_id, go_cur)
+                            if ontology == 'molecular_function':
+                                ontology = "MFO"
+                            elif ontology == 'biological_process':
+                                ontology = "BPO"
+                            elif ontology == 'cellular_component':
+                                ontology = "CCO"
+                        except IndexError:
+                            print "Getting GO Ontology, problem with GO ID",  go_id, ", uniprot ID ", uniprotID, ", and PMID ", pmid       
+                        hold_list.append([str(pmid), uniprotID, ontology, go_id, name])
+                        outString = "\t".join([str(pmid), uniprotID, ontology, go_id, name])    
+                        outString += "\n"    
+                        outF.write(outString)
+        relList_dict[idID] = hold_list
+        hold_list = []
+        outString = " \t \t \t \tThis group has identical annotations:\t " + str(theSameAnnot) + "\n"
+        outF.write(outString)
+        outF.write("\n")
+                        
+    go_con.close()
+    return relList_dict
+    
+###########################################################
+# print_go_terms_and_text_for_sim_seqs
+###########################################################
+def print_attr_files_for_sim_seqs(relList_dict, outEdgeAttrFile, outNodeAttrFile):
+    """print out the go terms and related text for identified similar sequences"""
+
+     #for start in range(0,totalCount, batchSize):
+     #   end = min(totalCount, start+batchSize)
+     
+     #relList_dict[rel id] = [[pmid, uniprot id, ontology, go_id, name], ...]
+     # for key, list in rel_dict
+     #      for item1 in list
+     #         print out attribute list for item1 
+     #         for item2 in list -1 (use range here?)
+     #             compare item to item 2
+     #             print out sif file with 'id' or 'df' (Identical or different) btw item 1 & 2
+     #             make list one smaller (update range?) say "for index in range (start, listLength)"
+     #                     item2 compares to list[index]
+    
+    outEdgeAttr = open(outEdgeAttrFile, 'w')
+    outNodeAttr = open (outNodeAttrFile, "w")
+    for relID, rel_list in relList_dict.iteritems():
+        start = 1
+        for sub_list in rel_list: 
+            outString = "\t".join(sub_list)    
+            outString += "\n"    
+            outNodeAttr.write(outString)
+            for index in range(start, len(rel_list)):
+                comp_list = rel_list[index]
+                subID = sub_list[0] + "|" + sub_list[1]
+                compID = comp_list[0] + "|" + comp_list[1]
+                # list: [str(pmid), uniprotID, ontology, go_id, name]
+                if  subID == compID:
+                    start += 1
+                elif sub_list[3] == comp_list[3]:
+                    outString = subID + " id " + compID + "\n"
+                    outEdgeAttr.write(outString)
+                    start += 1
+                else:
+                    outString = subID + " df " + compID + "\n"
+                    outEdgeAttr.write(outString)
+                    start += 1
+    outEdgeAttr.close()
+    outNodeAttr.close()
+    
+    
+    
+    
+    
+    
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -32,7 +32,7 @@ sum_tt_count = sp_tools.count_all_term_types(papersExp_dict)
 all_taxonID_dict = sp_tools.count_all_annotations_taxonIDs(papersTaxExp_dict)
 
 #top go codes
-top = 50
+top = 500
 ec_go_code_count = sp_tools.count_top_go_terms_per_ecode_all_entries(papersExp_dict, "sortedECGO.txt", top)
 
 # going for the top fifty papers
